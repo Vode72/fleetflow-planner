@@ -1,16 +1,48 @@
-# React + Vite
+# Traffic Coordinator Planner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Logistics planning tool for transport coordinators.
 
-Currently, two official plugins are available:
+## Screenshots
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### Dark theme
+![Dark theme](images/Screenshot_1.png)
 
-## React Compiler
+### Classic theme
+![Classic theme](images/Screenshot_2.png)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+- Load & Unload planning
+- Trailer selection
+- Route visualization (Leaflet map)
+- Distance & driving time calculation
+- Estimated arrival time
+- Schedule evaluation (OK / Risk / Late)
+- EU driving time rules (basic logic)
+- Multiple UI themes (dark / light / classic)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Example
+
+- Helsinki → Tampere
+- Distance: 180 km
+- Driving time: ~2h 15min
+- Arrival time calculated automatically
+- Schedule evaluation based on time windows
+
+## Tech Stack
+
+- React (Vite)
+- JavaScript
+- Leaflet (maps)
+- CSS
+
+## Purpose
+
+This project demonstrates:
+- Real-world logistics planning logic
+- UI/UX design for transport planning tools
+- Combining domain knowledge (logistics) with software development
+
+---
+
+Built as part of portfolio development.
