@@ -1,0 +1,175 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.app {
+  min-height: 100vh;
+  transition: all 0.3s ease;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Theme switcher */
+
+.theme-switcher {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.theme-switcher button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #374151;
+  color: white;
+}
+
+/* Common card/input styles */
+
+.card {
+  padding: 16px;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+input,
+select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+
+/* Dark theme */
+
+.app.dark {
+  background: linear-gradient(135deg, #2f3a46, #1f2933);
+  color: #e5e7eb;
+}
+
+.app.dark h1 {
+  color: #f3f4f6;
+}
+
+.app.dark .card {
+  background: #34404d;
+  border: 1px solid #4b5563;
+}
+
+.app.dark input,
+.app.dark select {
+  background: #1f2933;
+  color: #f9fafb;
+  border: 1px solid #5b6675;
+}
+
+/* Light soft theme */
+
+.app.light {
+  background: #e7edf3;
+  color: #263849;
+}
+
+.app.light h1 {
+  color: #263849;
+}
+
+.app.light .card {
+  background: #f4f7fa;
+  border: 1px solid #d8e0e8;
+}
+
+.app.light input,
+.app.light select {
+  background: #ffffff;
+  color: #263849;
+  border: 1px solid #c8d2dc;
+}
+
+/* Classic SAP-style theme */
+
+.app.classic {
+  background: #d7dbe0;
+  color: #1f2937;
+}
+
+.app.classic h1 {
+  color: #1f2937;
+}
+
+.app.classic .card {
+  background: #eceff2;
+  border: 1px solid #aeb6c1;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.app.classic input,
+.app.classic select {
+  background: #ffffff;
+  color: #111827;
+  border: 1px solid #8f98a3;
+  border-radius: 3px;
+}
+
+/* Result */
+
+.result {
+  text-align: center;
+  padding: 15px;
+  border-radius: 10px;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.result.ok {
+  background: #e6f4ea;
+  color: #1e7e34;
+}
+
+.result.riski {
+  background: #fff8e1;
+  color: #8a6d3b;
+}
+
+.result.ei-onnistu {
+  background: #fdecea;
+  color: #b02a37;
+}
+
+.result.ei-tietoja {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.schedule {
+  font-weight: bold;
+}
+
+.schedule.good {
+  color: #22c55e;
+}
+
+.schedule.warn {
+  color: #f59e0b;
+}
+
+.schedule.bad {
+  color: #ef4444;
+}
