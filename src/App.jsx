@@ -40,6 +40,7 @@ export default function App() {
   const [trailerType, setTrailerType] = useState("Box trailer");
   const [tractor, setTractor] = useState("DTV171");
   const [loadRef, setLoadRef] = useState("00055871733");
+  const [driverHoursToday, setDriverHoursToday] = useState(3.5);
 
   const plan = useMemo(() => {
     const from = cities[loadingCity];
@@ -48,11 +49,12 @@ export default function App() {
     const avgSpeed = 72;
     const drivingHours = distanceKm / avgSpeed;
 
-    const breakMinutes = drivingHours > 4.5 ? 45 : 0;
-    const totalHours = drivingHours + breakMinutes / 60;
-
     const dailyLimit = 9;
-    const bufferHours = dailyLimit - drivingHours;
+    const totalDrivingWithHistory = driverHoursToday + drivingHours;
+
+    const breakMinutes = totalDrivingWithHistory > 4.5 ? 45 : 0;
+    const totalHours = drivingHours + breakMinutes / 60;
+    const bufferHours = dailyLimit - totalDrivingWithHistory;
 
     const [startH, startM] = startTime.split(":").map(Number);
     const eta = new Date();
@@ -60,9 +62,9 @@ export default function App() {
     eta.setMinutes(eta.getMinutes() + Math.round(totalHours * 60));
 
     const status =
-      drivingHours > 9
+      totalDrivingWithHistory > 9
         ? "Risk"
-        : drivingHours > 4.5
+        : totalDrivingWithHistory > 4.5
         ? "Break required"
         : "OK";
 
@@ -78,24 +80,46 @@ export default function App() {
       breakMinutes,
       totalHours,
       bufferHours,
+      totalDrivingWithHistory,
       eta: eta.toTimeString().slice(0, 5),
       status,
     };
-  }, [loadingCity, unloadingCity, startTime]);
+    }, [loadingCity, unloadingCity, startTime, driverHoursToday]);
 
-  const eventLog = [
-    `Load ${loadRef} planned from ${loadingCity} to ${unloadingCity}.`,
-    `Tractor ${tractor} assigned.`,
-    `${trailerType} selected.`,
-    plan.breakMinutes > 0
-      ? "EU driving time: 45 min break required after 4h30 driving."
-      : "EU driving time: no break required before destination.",
-    plan.bufferHours < 1
-      ? "Low buffer: check schedule, unloading window and possible delay risk."
-      : "Schedule buffer is acceptable.",
-  ];
+    const eventLog = useMemo(() => {
+      const logs = [];
 
-  return (
+      logs.push(`Load ${loadRef} planned from ${loadingCity} to ${unloadingCity}.`);
+      logs.push(`Tractor ${tractor} assigned.`);
+      logs.push(`${trailerType} selected.`);
+      logs.push(`Driver has already driven ${formatHours(driverHoursToday)} today.`);
+      logs.push(`Total driving after this route is ${formatHours(plan.totalDrivingWithHistory)}.`);
+
+      if (plan.totalDrivingWithHistory > 9) {
+        logs.push("EU driving time risk: daily 9h driving limit exceeded.");
+      } else if (plan.totalDrivingWithHistory > 4.5) {
+        logs.push("EU driving time: 45 min break required because total driving exceeds 4h30.");
+      } else {
+        logs.push("EU driving time: no break required before destination.");
+      }
+
+      if (plan.bufferHours < 1) {
+        logs.push("Low buffer: check schedule, unloading window and possible delay risk.");
+      } else {
+        logs.push("Schedule buffer is acceptable.");
+      }
+
+      return logs;
+    }, [loadRef, 
+        loadingCity, 
+        unloadingCity, 
+        tractor, 
+        trailerType, 
+        driverHoursToday, 
+        plan.totalDrivingWithHistory, 
+        plan.bufferHours]);
+
+return (
     <div className={`app ${theme}`}>
       <header className="topbar">
         <div>
@@ -177,6 +201,16 @@ export default function App() {
           <input value="Checked" readOnly />
         </section>
 
+          <label>Ajo tänään</label>
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            max="15"
+            value={driverHoursToday}
+            onChange={(e) => setDriverHoursToday(Number(e.target.value))}
+          />  
+
         <section className="panel route-panel">
           <div className="panel-header">
             <h2>Reitti + kartta</h2>
@@ -216,6 +250,12 @@ export default function App() {
 
             <dt>Ajoaika</dt>
             <dd>{formatHours(plan.drivingHours)}</dd>
+
+            <dt>Kuljettajan ajo tänään</dt>
+            <dd>{formatHours(driverHoursToday)}</dd>
+
+            <dt>Ajo yhteensä</dt>
+            <dd>{formatHours(plan.totalDrivingWithHistory)}</dd>
 
             <dt>Tauko</dt>
             <dd>{plan.breakMinutes} min</dd>
