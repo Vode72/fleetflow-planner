@@ -52,7 +52,7 @@ body {
   height: calc(100vh - 88px);
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 330px;
-  grid-template-rows: 190px minmax(0, 1fr) 112px;
+  grid-template-rows: 190px minmax(0, 1fr) 128px;
   gap: 8px;
 }
 
@@ -187,6 +187,7 @@ dd {
 .notes-panel {
   grid-column: 1 / 5;
   grid-row: 3;
+  overflow: auto;
 }
 
 .notes-panel ul {
@@ -198,8 +199,9 @@ dd {
 
 .notes-panel li {
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.45;
   break-inside: avoid;
+  padding-bottom: 1px;
 }
 
 .notes-panel li span {
