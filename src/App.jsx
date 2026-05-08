@@ -1,290 +1,248 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 import "./App.css";
-import MapView from "./MapView";
+
+const cities = {
+  Helsinki: { lat: 60.1699, lng: 24.9384 },
+  Tampere: { lat: 61.4978, lng: 23.761 },
+  Turku: { lat: 60.4518, lng: 22.2666 },
+  Lahti: { lat: 60.9827, lng: 25.6615 },
+  Jyväskylä: { lat: 62.2426, lng: 25.7473 },
+  Oulu: { lat: 65.0121, lng: 25.4651 },
+};
+
+function calculateDistanceKm(from, to) {
+  const R = 6371;
+  const dLat = ((to.lat - from.lat) * Math.PI) / 180;
+  const dLng = ((to.lng - from.lng) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((from.lat * Math.PI) / 180) *
+      Math.cos((to.lat * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+function formatHours(decimalHours) {
+  const h = Math.floor(decimalHours);
+  const min = Math.round((decimalHours - h) * 60);
+  return `${h} h ${min} min`;
+}
 
 export default function App() {
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState("classic");
+  const [loadingCity, setLoadingCity] = useState("Helsinki");
+  const [unloadingCity, setUnloadingCity] = useState("Tampere");
+  const [startTime, setStartTime] = useState("08:00");
+  const [trailerType, setTrailerType] = useState("Box trailer");
+  const [tractor, setTractor] = useState("DTV171");
+  const [loadRef, setLoadRef] = useState("00055871733");
 
-  const [loadingCity, setLoadingCity] = useState("");
-  const [unloadingCity, setUnloadingCity] = useState("");
-  const [loadingTime, setLoadingTime] = useState("");
-  const [unloadingTime, setUnloadingTime] = useState("");
-  const [trailertype, setTrailertype] = useState("pressu");
-  const [drivers, setDrivers] = useState(1);
-  const [fixUnload, setFixUnload] = useState(false);
+  const plan = useMemo(() => {
+    const from = cities[loadingCity];
+    const to = cities[unloadingCity];
+    const distanceKm = calculateDistanceKm(from, to);
+    const avgSpeed = 72;
+    const drivingHours = distanceKm / avgSpeed;
 
-  const cityDistances = {
-    helsinki_tampere: 180,
-    tampere_helsinki: 180,
-    helsinki_turku: 165,
-    turku_helsinki: 165,
-    turku_tampere: 160,
-    tampere_turku: 160,
-    helsinki_oulu: 610,
-    oulu_helsinki: 610,
-    tampere_oulu: 485,
-    oulu_tampere: 485,
-    turku_oulu: 640,
-    oulu_turku: 640,
-  };
+    const breakMinutes = drivingHours > 4.5 ? 45 : 0;
+    const totalHours = drivingHours + breakMinutes / 60;
 
-  const getDistance = () => {
-    const key = `${(loadingCity || "").trim().toLowerCase()}_${(
-      unloadingCity || ""
-    )
-      .trim()
-      .toLowerCase()}`;
+    const dailyLimit = 9;
+    const bufferHours = dailyLimit - drivingHours;
 
-    return cityDistances[key] || null;
-  };
+    const [startH, startM] = startTime.split(":").map(Number);
+    const eta = new Date();
+    eta.setHours(startH, startM, 0, 0);
+    eta.setMinutes(eta.getMinutes() + Math.round(totalHours * 60));
 
-  const getDrivingMinutes = (km) => {
-    if (!km) return null;
-    return Math.round((km / 80) * 60);
-  };
-
-  const formatMinutes = (minutes) => {
-    if (minutes === null || minutes === undefined) return "-";
-
-    const h = Math.floor(minutes / 60);
-    const min = minutes % 60;
-
-    return `${h}h ${min.toString().padStart(2, "0")}min`;
-  };
-
-  const timeToMinutes = (time) => {
-    if (!time) return null;
-
-    const [hours, minutes] = time.split(":").map(Number);
-    return hours * 60 + minutes;
-  };
-
-  const minutesToTime = (totalMinutes) => {
-    if (totalMinutes === null || totalMinutes === undefined) return "-";
-
-    const minutesInDay = 24 * 60;
-    const normalizedMinutes = totalMinutes % minutesInDay;
-
-    const h = Math.floor(normalizedMinutes / 60);
-    const min = normalizedMinutes % 60;
-
-    return `${h.toString().padStart(2, "0")}:${min
-      .toString()
-      .padStart(2, "0")}`;
-  };
-
-  const getScheduleStatus = () => {
-    const loadingMinutes = timeToMinutes(loadingTime);
-    const unloadingMinutes = timeToMinutes(unloadingTime);
-
-    if (!loadingMinutes || !unloadingMinutes || !drivingMinutes) {
-      return {
-        arrivalTime: "-",
-        scheduleText: "Ei riittäviä aikatietoja",
-      };
-    }
-
-    const arrivalMinutes = loadingMinutes + drivingMinutes;
-    const difference = unloadingMinutes - arrivalMinutes;
-
-    if (difference >= 30) {
-      return {
-        arrivalTime: minutesToTime(arrivalMinutes),
-        scheduleText: `OK, pelivaraa ${formatMinutes(difference)}`,
-      };
-    }
-
-    if (difference >= 0) {
-      return {
-        arrivalTime: minutesToTime(arrivalMinutes),
-        scheduleText: `Riski, pelivaraa vain ${formatMinutes(difference)}`,
-      };
-    }
+    const status =
+      drivingHours > 9
+        ? "Risk"
+        : drivingHours > 4.5
+        ? "Break required"
+        : "OK";
 
     return {
-      arrivalTime: minutesToTime(arrivalMinutes),
-      scheduleText: `Myöhästyy ${Math.abs(difference)} min`,
+      from,
+      to,
+      route: [
+        [from.lat, from.lng],
+        [to.lat, to.lng],
+      ],
+      distanceKm,
+      drivingHours,
+      breakMinutes,
+      totalHours,
+      bufferHours,
+      eta: eta.toTimeString().slice(0, 5),
+      status,
     };
-  };
+  }, [loadingCity, unloadingCity, startTime]);
 
-  const distance = getDistance();
-  const drivingMinutes = getDrivingMinutes(distance);
-  const drivingTime = formatMinutes(drivingMinutes);
-  const schedule = getScheduleStatus();
-
-    const getDriverRuleCheck = () => {
-    if (!drivingMinutes) {
-      return {
-        breakNeeded: "-",
-        legalDrivingTime: "-",
-        totalTimeWithBreaks: null,
-        text: "Ei ajotietoja",
-      };
-    }
-
-    const maxDailyDrivingMinutes = 9 * 60;
-    const breakLimitMinutes = 4.5 * 60;
-    const breakMinutes = 45;
-
-    const needsBreak = drivingMinutes > breakLimitMinutes;
-    const totalWithBreaks = needsBreak
-      ? drivingMinutes + breakMinutes
-      : drivingMinutes;
-
-    if (drivingMinutes > maxDailyDrivingMinutes) {
-      return {
-        breakNeeded: needsBreak ? "Kyllä, 45 min" : "Ei",
-        legalDrivingTime: "Ei onnistu",
-        totalTimeWithBreaks: totalWithBreaks,
-        text: "Päivän ajoaika ylittää 9 h",
-      };
-    }
-
-    return {
-      breakNeeded: needsBreak ? "Kyllä, 45 min" : "Ei",
-      legalDrivingTime: "OK",
-      totalTimeWithBreaks: totalWithBreaks,
-      text: needsBreak
-        ? "Tauko lisätty ajoaikaan"
-        : "Ei taukoa tällä matkalla",
-    };
-  };
-
-  const driverRules = getDriverRuleCheck();
-
-  const getStatus = () => {
-    if (!loadingCity || !unloadingCity) return "Ei tietoja";
-    if (!distance) return "Ei tietoja";
-    if (driverRules.legalDrivingTime === "Ei onnistu") return "Ei onnistu";
-
-    if (fixUnload && schedule.scheduleText.includes("Myöhästyy")) {
-      return "Ei onnistu";
-    }
-
-    if (fixUnload && schedule.scheduleText.includes("Riski")) {
-      return "Riski";
-    }
-
-    if (fixUnload && drivers === 1 && distance > 400) return "Ei onnistu";
-    if (fixUnload && drivers === 1 && distance > 250) return "Riski";
-
-    return "OK";
-  };
-
-  const status = getStatus();
-  const statusClass = status.toLowerCase().replaceAll(" ", "-");
-
-  const getScheduleClass = () => {
-  if (!schedule || !schedule.scheduleText) return "";
-
-  if (schedule.scheduleText.includes("Myöhästyy")) return "bad";
-  if (schedule.scheduleText.includes("Riski")) return "warn";
-  if (schedule.scheduleText.includes("OK")) return "good";
-
-  return "";
-  };
+  const eventLog = [
+    `Load ${loadRef} planned from ${loadingCity} to ${unloadingCity}.`,
+    `Tractor ${tractor} assigned.`,
+    `${trailerType} selected.`,
+    plan.breakMinutes > 0
+      ? "EU driving time: 45 min break required after 4h30 driving."
+      : "EU driving time: no break required before destination.",
+    plan.bufferHours < 1
+      ? "Low buffer: check schedule, unloading window and possible delay risk."
+      : "Schedule buffer is acceptable.",
+  ];
 
   return (
     <div className={`app ${theme}`}>
-      <div className="container">
-        <h1>Traffic Coordinator Planner</h1>
-
-        <div className="theme-switcher">
-          <button onClick={() => setTheme("dark")}>Tumma</button>
-          <button onClick={() => setTheme("light")}>Vaalea</button>
-          <button onClick={() => setTheme("classic")}>Klassinen</button>
+      <header className="topbar">
+        <div>
+          <h1>Traffic Coordinator Planner</h1>
+          <span>TMS-style transport planning dashboard</span>
         </div>
 
-        <div className="card">
-          <h2>Lastaus</h2>
+        <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+          <option value="classic">Classic</option>
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </header>
 
-          <input
-            placeholder="Kaupunki"
+      <main className="planner-grid">
+        <section className="panel form-panel">
+          <h2>Lastaus</h2>
+          <label>Load reference</label>
+          <input value={loadRef} onChange={(e) => setLoadRef(e.target.value)} />
+
+          <label>Lastauspaikka</label>
+          <select
             value={loadingCity}
             onChange={(e) => setLoadingCity(e.target.value)}
-          />
-
-          <input
-            type="time"
-            value={loadingTime}
-            onChange={(e) => setLoadingTime(e.target.value)}
-          />
-        </div>
-
-        <div className="card">
-          <h2>Purku</h2>
-
-          <input
-            placeholder="Kaupunki"
-            value={unloadingCity}
-            onChange={(e) => setUnloadingCity(e.target.value)}
-          />
-
-          <input
-            type="time"
-            value={unloadingTime}
-            onChange={(e) => setUnloadingTime(e.target.value)}
-          />
-
-          <label>
-            <input
-              type="checkbox"
-              checked={fixUnload}
-              onChange={() => setFixUnload(!fixUnload)}
-            />
-            Fix purku
-          </label>
-        </div>
-
-        <div className="card">
-          <h2>Kalusto</h2>
-
-          <select
-            value={trailertype}
-            onChange={(e) => setTrailertype(e.target.value)}
           >
-            <option value="pressu">Pressu</option>
-            <option value="kaappi">Umpikaappi</option>
-            <option value="side">Sivusta aukeava</option>
-            <option value="temp">2-kylmäkone</option>
+            {Object.keys(cities).map((city) => (
+              <option key={city}>{city}</option>
+            ))}
           </select>
 
+          <label>Lähtöaika</label>
           <input
-            type="number"
-            min="1"
-            value={drivers}
-            onChange={(e) => setDrivers(Number(e.target.value))}
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
           />
-        </div>
+        </section>
 
-        <div className="card">
-          <h2>Reitti</h2>
-          <MapView loadingCity={loadingCity} unloadingCity={unloadingCity} />
-        </div>
+        <section className="panel form-panel">
+          <h2>Purku</h2>
+          <label>Purkupaikka</label>
+          <select
+            value={unloadingCity}
+            onChange={(e) => setUnloadingCity(e.target.value)}
+          >
+            {Object.keys(cities).map((city) => (
+              <option key={city}>{city}</option>
+            ))}
+          </select>
 
-        <div className="card">
-          <h2>Ajotiedot</h2>
-          <p>Etäisyys: {distance ? `${distance} km` : "-"}</p>
-          <p>Ajoaika ilman taukoja: {drivingTime}</p>
-          <p>Taukotarve: {driverRules.breakNeeded}</p>
-          <p>
-            Ajoaika taukoineen:{" "}
-            {driverRules.totalTimeWithBreaks
-              ? formatMinutes(driverRules.totalTimeWithBreaks)
-              : "-"}
-          </p>
-          <p>Arvioitu saapuminen: {schedule.arrivalTime}</p>
-          <p className={`schedule ${getScheduleClass()}`}>
-            Aikataulu: {schedule.scheduleText}
-          </p>
-          <p>Ajoaikasääntö: {driverRules.legalDrivingTime}</p>
-          <p>Huomio: {driverRules.text}</p>
-        </div>
+          <label>Purkuikkuna</label>
+          <input value="Same day / next day" readOnly />
 
-        <div className={`result ${statusClass}`}>
-          <h2>Tulos: {status}</h2>
-        </div>
-      </div>
+          <label>Purkuriski</label>
+          <input value="Normal access" readOnly />
+        </section>
+
+        <section className="panel form-panel">
+          <h2>Kalusto</h2>
+          <label>Vetäjä</label>
+          <select value={tractor} onChange={(e) => setTractor(e.target.value)}>
+            <option>DTV171</option>
+            <option>DTV169</option>
+            <option>DVI253</option>
+          </select>
+
+          <label>Trailerityyppi</label>
+          <select
+            value={trailerType}
+            onChange={(e) => setTrailerType(e.target.value)}
+          >
+            <option>Box trailer</option>
+            <option>Side-opening box</option>
+            <option>Thermo trailer</option>
+            <option>Curtain trailer</option>
+          </select>
+
+          <label>Soveltuvuus</label>
+          <input value="Checked" readOnly />
+        </section>
+
+        <section className="panel route-panel">
+          <div className="panel-header">
+            <h2>Reitti + kartta</h2>
+            <span>
+              {loadingCity} → {unloadingCity}
+            </span>
+          </div>
+
+          <MapContainer center={[61.2, 25.0]} zoom={6} className="map">
+            <TileLayer
+              attribution="&copy; OpenStreetMap"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            <Marker position={[plan.from.lat, plan.from.lng]}>
+              <Popup>Lastaus: {loadingCity}</Popup>
+            </Marker>
+
+            <Marker position={[plan.to.lat, plan.to.lng]}>
+              <Popup>Purku: {unloadingCity}</Popup>
+            </Marker>
+
+            <Polyline positions={plan.route} />
+          </MapContainer>
+        </section>
+
+        <section className="panel result-panel">
+          <h2>Ajotiedot / tulos</h2>
+
+          <div className={`status ${plan.status.toLowerCase().replace(" ", "-")}`}>
+            {plan.status}
+          </div>
+
+          <dl>
+            <dt>Etäisyys</dt>
+            <dd>{plan.distanceKm} km</dd>
+
+            <dt>Ajoaika</dt>
+            <dd>{formatHours(plan.drivingHours)}</dd>
+
+            <dt>Tauko</dt>
+            <dd>{plan.breakMinutes} min</dd>
+
+            <dt>Kokonaisaika</dt>
+            <dd>{formatHours(plan.totalHours)}</dd>
+
+            <dt>ETA</dt>
+            <dd>{plan.eta}</dd>
+
+            <dt>Pelivara</dt>
+            <dd>{formatHours(Math.max(plan.bufferHours, 0))}</dd>
+          </dl>
+        </section>
+
+        <section className="panel notes-panel">
+          <h2>Suunnitelman huomautukset / event log</h2>
+          <ul>
+            {eventLog.map((item, index) => (
+              <li key={index}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
     </div>
   );
 }
