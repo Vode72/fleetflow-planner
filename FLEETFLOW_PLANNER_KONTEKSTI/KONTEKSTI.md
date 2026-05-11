@@ -364,6 +364,98 @@ npm run build passed
 
 ---
 
+## Step 6.2 — Fleet Timeline / Truck Sequences View
+
+Fleet-välilehdelle lisättiin autokohtainen päivän job sequence -näkymä.
+
+Fleet näyttää jokaisen käytössä olevan truckin jobit kronologisesti `loadingTime`-ajan mukaan.
+
+Näkymässä näytetään:
+
+- truck
+- jobien määrä
+- aika
+- job id
+- reitti
+- handlingType ja handlingDurationMinutes
+- status
+
+Unassigned-jobit jätetään Fleet sequence -listauksen ulkopuolelle, koska niitä ei ole vielä osoitettu truckille.
+
+Fleet-näkymässä job-korttia klikkaamalla:
+
+- selectedJobId päivittyy
+- planner-state synkataan valitusta jobista samalla `syncPlannerStateFromJob`-helperillä kuin Board-näkymässä
+
+Tässä vaiheessa ei muutettu:
+
+- Board-näkymän nykyistä planner-logiikkaa
+- dailyJobs-dataa
+- ajoaikalogiikkaa
+- karttalogiikkaa
+- ETA-laskentaa
+- assign truck -logiikkaa
+- reset-toimintoa
+- Event Log -logiikkaa
+- theme-järjestelmää
+
+Build:
+
+```text
+npm run lint passed
+npm run build passed
+```
+
+---
+
+## Step 6.1 — Cockpit Navigation Shell
+
+FleetFlow Planneriin lisättiin cockpit-päävälilehtien runko.
+
+Lisättiin uusi state:
+
+- workspaceTab
+
+Päävälilehdet:
+
+- Board
+- Job
+- Fleet
+- Route & Risk
+
+Board on oletusnäkymä ja näyttää nykyisen toimivan planner-layoutin.
+
+Job, Fleet ja Route & Risk ovat tässä vaiheessa kevyitä placeholder-näkymiä tulevia kehitysvaiheita varten.
+
+Tässä vaiheessa ei vielä siirretty toiminnallisuuksia eri näkymiin.
+
+Tavoite oli valmistella FleetFlow Plannerin uusi cockpit-rakenne:
+
+- Board = päivän yleisnäkymä
+- Job = valitun jobin tarkempi työtila
+- Fleet = autokohtainen päivän eteneminen ja tuleva plan check
+- Route & Risk = kartta, Event Log ja tulevat riskivaroitukset
+
+Tässä vaiheessa ei muutettu:
+
+- dailyJobs-dataa
+- ajoaikalogiikkaa
+- karttalogiikkaa
+- ETA-laskentaa
+- assign truck -logiikkaa
+- reset-toimintoa
+- Event Log -logiikkaa
+- theme-järjestelmää
+
+Build:
+
+```text
+npm run lint passed
+npm run build passed
+```
+
+---
+
 ## Step 5.3.3 — SAP-style Details Tabs
 
 Ajotiedot / tulos -paneeli muutettiin SAP-/TMS-tyyliseksi välilehtipaneeliksi.
