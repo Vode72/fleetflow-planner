@@ -112,6 +112,23 @@ export default function App() {
   const selectedJob =
     dailyJobs.find((job) => job.id === selectedJobId) || dailyJobs[0];
 
+  const capacitySummary = useMemo(() => {
+    const assignedTrucks = dailyJobs
+      .filter((job) => job.truck !== "Unassigned")
+      .map((job) => job.truck);
+
+    return {
+      totalJobs: dailyJobs.length,
+      assignedJobs: dailyJobs.filter((job) => job.truck !== "Unassigned").length,
+      openJobs: dailyJobs.filter((job) => job.status === "Open").length,
+      riskJobs: dailyJobs.filter((job) => job.status === "Risk").length,
+      breakRequiredJobs: dailyJobs.filter(
+        (job) => job.status === "Break required",
+      ).length,
+      trucksInUse: new Set(assignedTrucks).size,
+    };
+  }, []);
+
   const plan = useMemo(() => {
     const from = cities[loadingCity];
     const to = cities[unloadingCity];
@@ -283,6 +300,29 @@ export default function App() {
             value={driverHoursToday}
             onChange={(e) => setDriverHoursToday(Number(e.target.value))}
           />
+        </section>
+
+        <section className="panel capacity-panel">
+          <h2>Daily Capacity</h2>
+          <dl className="capacity-list">
+            <dt>Jobs today</dt>
+            <dd>{capacitySummary.totalJobs}</dd>
+
+            <dt>Assigned</dt>
+            <dd>{capacitySummary.assignedJobs}</dd>
+
+            <dt>Open</dt>
+            <dd>{capacitySummary.openJobs}</dd>
+
+            <dt>Risk</dt>
+            <dd>{capacitySummary.riskJobs}</dd>
+
+            <dt>Break required</dt>
+            <dd>{capacitySummary.breakRequiredJobs}</dd>
+
+            <dt>Trucks in use</dt>
+            <dd>{capacitySummary.trucksInUse}</dd>
+          </dl>
         </section>
 
         <section className="panel daily-plan-panel">

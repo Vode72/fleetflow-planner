@@ -159,3 +159,107 @@ Aina annetaan pieni edeltävä koodinpätkä tai ankkuri, jotta muutoskohta löy
 Ei korvata koko sovellusta, ellei ole pakko.
 
 Edetään pienissä, turvallisissa vaiheissa.
+
+## Step 3.3 — Daily Capacity Summary
+
+Yläosan oikeaan tyhjään kohtaan lisättiin uusi paneeli:
+
+**Daily Capacity**
+
+Paneelin tarkoitus on näyttää päivän kapasiteettitilanne nopeasti liikennesuunnittelijan näkökulmasta.
+
+Nykyinen yläosan layout:
+
+- Lastaus
+- Purku
+- Kalusto
+- Daily Capacity
+
+Näytettävät KPI:t:
+
+- Jobs today
+- Assigned
+- Open
+- Risk
+- Break required
+- Trucks in use
+
+Laskenta tehdään `dailyJobs`-datasta:
+
+- totalJobs = kaikki päivän keikat
+- assignedJobs = keikat, joissa truck ei ole `Unassigned`
+- openJobs = keikat, joissa status on `Open`
+- riskJobs = keikat, joissa status on `Risk`
+- breakRequiredJobs = keikat, joissa status on `Break required`
+- trucksInUse = uniikit käytössä olevat vetäjät, pois lukien `Unassigned`
+
+Toteutustapa:
+
+- ei lisätty uutta statea
+- KPI-arvot johdetaan `dailyJobs`-datasta
+- valittu keikka ei vielä ohjaa karttaa, ETA:a tai ajoaikalogiikkaa
+- nykyinen TMS/SAP/EVO-tyylinen desktop-layout säilytettiin
+- paneeli täyttää yläosan oikean tyhjän tilan
+
+Status: tehty Codexilla.
+
+Build:
+
+```text
+npm run build passed
+```
+
+---
+
+### Selected Job card scroll fix
+
+Selected Job -korttiin oli aiemmassa CSS-korjauksessa tullut sisäinen scrollbar.
+
+Tämä korjattiin CSS-only -muutoksena.
+
+Muutokset:
+
+- `.selected-job-card` overflow muutettiin `auto` → `visible`
+- Daily Traffic Plan -gridirivin korkeus nostettiin 230px → 250px
+- bottom row min-height pienennettiin 240px → 220px
+
+Tavoite:
+
+- Selected Job -kortti näyttää kaikki rivit ilman sisäistä scrollia
+- layout pysyy tiiviinä desktop planner -näkymänä
+- ei muutoksia logiikkaan, karttaan, ETA:an tai ajoaikalaskentaan
+
+Build:
+
+```text
+npm run build passed
+```
+
+---
+
+### Selected Job status visibility fix
+
+Selected Job -kortista puuttui Status-rivi sen jälkeen, kun sisäinen scroll poistettiin.
+
+Korjaus tehtiin CSS-only -muutoksena.
+
+Tulos:
+
+- Selected Job -kortissa näkyvät nyt kaikki rivit:
+  - Flow
+  - Type
+  - Customer
+  - Route
+  - Time
+  - Truck
+  - Status
+- Status-pill, esimerkiksi OK, näkyy ilman sisäistä scrollia
+- kortti pysyy tiiviinä ja TMS/SAP/EVO-tyylisenä
+
+Build:
+
+Build:
+
+```text
+npm run build passed
+```
