@@ -8,9 +8,60 @@ const cities = {
   Tampere: { lat: 61.4978, lng: 23.761 },
   Turku: { lat: 60.4518, lng: 22.2666 },
   Lahti: { lat: 60.9827, lng: 25.6615 },
-  Jyväskylä: { lat: 62.2426, lng: 25.7473 },
+  Jyvaskyla: { lat: 62.2426, lng: 25.7473 },
   Oulu: { lat: 65.0121, lng: 25.4651 },
+  Hanko: { lat: 59.8236, lng: 22.9681 },
+  Vantaa: { lat: 60.2934, lng: 25.0378 },
+  Kerava: { lat: 60.4034, lng: 25.105 },
+  Kotka: { lat: 60.4666, lng: 26.9459 },
 };
+
+const dailyJobs = [
+  {
+    id: "JOB-001",
+    flowType: "Import",
+    jobType: "Purku",
+    customer: "Nordic Demo Plastics Oy",
+    originCity: "Helsinki",
+    destinationCity: "Tampere",
+    timeWindow: "10:00-13:00",
+    truck: "TRK-101",
+    status: "OK",
+  },
+  {
+    id: "JOB-002",
+    flowType: "Export",
+    jobType: "Lastaus",
+    customer: "Baltic Demo Foods Oy",
+    originCity: "Lahti",
+    destinationCity: "Hanko",
+    timeWindow: "12:00-16:00",
+    truck: "TRK-102",
+    status: "Risk",
+  },
+  {
+    id: "JOB-003",
+    flowType: "Domestic",
+    jobType: "Jakelu",
+    customer: "Demo Retail Finland Oy",
+    originCity: "Vantaa",
+    destinationCity: "Turku",
+    timeWindow: "09:00-15:00",
+    truck: "TRK-101",
+    status: "Break required",
+  },
+  {
+    id: "JOB-004",
+    flowType: "Transfer",
+    jobType: "Siirto",
+    customer: "Internal Demo Transfer",
+    originCity: "Kerava",
+    destinationCity: "Kotka",
+    timeWindow: "14:00-18:00",
+    truck: "Unassigned",
+    status: "Open",
+  },
+];
 
 function calculateDistanceKm(from, to) {
   const R = 6371;
@@ -32,15 +83,34 @@ function formatHours(decimalHours) {
   return `${h} h ${min} min`;
 }
 
+function getJobStatusClass(status) {
+  switch (status) {
+    case "OK":
+      return "status-pill status-ok";
+    case "Break required":
+      return "status-pill status-break";
+    case "Risk":
+      return "status-pill status-risk";
+    case "Open":
+      return "status-pill status-open";
+    default:
+      return "status-pill status-open";
+  }
+}
+
 export default function App() {
   const [theme, setTheme] = useState("classic");
   const [loadingCity, setLoadingCity] = useState("Helsinki");
   const [unloadingCity, setUnloadingCity] = useState("Tampere");
+  const [selectedJobId, setSelectedJobId] = useState(dailyJobs[0].id);
   const [startTime, setStartTime] = useState("08:00");
   const [trailerType, setTrailerType] = useState("Box trailer");
-  const [tractor, setTractor] = useState("DTV171");
-  const [loadRef, setLoadRef] = useState("00055871733");
+  const [tractor, setTractor] = useState("TRK-101");
+  const [loadRef, setLoadRef] = useState("FFL-2026-001");
   const [driverHoursToday, setDriverHoursToday] = useState(3.5);
+
+  const selectedJob =
+    dailyJobs.find((job) => job.id === selectedJobId) || dailyJobs[0];
 
   const plan = useMemo(() => {
     const from = cities[loadingCity];
@@ -65,8 +135,8 @@ export default function App() {
       totalDrivingWithHistory > 9
         ? "Risk"
         : totalDrivingWithHistory > 4.5
-        ? "Break required"
-        : "OK";
+          ? "Break required"
+          : "OK";
 
     return {
       from,
@@ -84,46 +154,50 @@ export default function App() {
       eta: eta.toTimeString().slice(0, 5),
       status,
     };
-    }, [loadingCity, unloadingCity, startTime, driverHoursToday]);
+  }, [loadingCity, unloadingCity, startTime, driverHoursToday]);
 
-    const eventLog = useMemo(() => {
-      const logs = [];
+  const eventLog = useMemo(() => {
+    const logs = [];
 
-      logs.push(`Load ${loadRef} planned from ${loadingCity} to ${unloadingCity}.`);
-      logs.push(`Tractor ${tractor} assigned.`);
-      logs.push(`${trailerType} selected.`);
-      logs.push(`Driver has already driven ${formatHours(driverHoursToday)} today.`);
-      logs.push(`Total driving after this route is ${formatHours(plan.totalDrivingWithHistory)}.`);
+    logs.push(`Load ${loadRef} planned from ${loadingCity} to ${unloadingCity}.`);
+    logs.push(`Tractor ${tractor} assigned.`);
+    logs.push(`${trailerType} selected.`);
+    logs.push(`Driver has already driven ${formatHours(driverHoursToday)} today.`);
+    logs.push(
+      `Total driving after this route is ${formatHours(plan.totalDrivingWithHistory)}.`,
+    );
 
-      if (plan.totalDrivingWithHistory > 9) {
-        logs.push("EU driving time risk: daily 9h driving limit exceeded.");
-      } else if (plan.totalDrivingWithHistory > 4.5) {
-        logs.push("EU driving time: 45 min break required because total driving exceeds 4h30.");
-      } else {
-        logs.push("EU driving time: no break required before destination.");
-      }
+    if (plan.totalDrivingWithHistory > 9) {
+      logs.push("EU driving time risk: daily 9h driving limit exceeded.");
+    } else if (plan.totalDrivingWithHistory > 4.5) {
+      logs.push("EU driving time: 45 min break required because total driving exceeds 4h30.");
+    } else {
+      logs.push("EU driving time: no break required before destination.");
+    }
 
-      if (plan.bufferHours < 1) {
-        logs.push("Low buffer: check schedule, unloading window and possible delay risk.");
-      } else {
-        logs.push("Schedule buffer is acceptable.");
-      }
+    if (plan.bufferHours < 1) {
+      logs.push("Low buffer: check schedule, unloading window and possible delay risk.");
+    } else {
+      logs.push("Schedule buffer is acceptable.");
+    }
 
-      return logs;
-    }, [loadRef, 
-        loadingCity, 
-        unloadingCity, 
-        tractor, 
-        trailerType, 
-        driverHoursToday, 
-        plan.totalDrivingWithHistory, 
-        plan.bufferHours]);
+    return logs;
+  }, [
+    loadRef,
+    loadingCity,
+    unloadingCity,
+    tractor,
+    trailerType,
+    driverHoursToday,
+    plan.totalDrivingWithHistory,
+    plan.bufferHours,
+  ]);
 
-return (
+  return (
     <div className={`app ${theme}`}>
       <header className="topbar">
         <div>
-          <h1>Traffic Coordinator Planner</h1>
+          <h1>FleetFlow Planner</h1>
           <span>TMS-style transport planning dashboard</span>
         </div>
 
@@ -150,7 +224,7 @@ return (
             ))}
           </select>
 
-          <label>Lähtöaika</label>
+          <label>Lahtoaika</label>
           <input
             type="time"
             value={startTime}
@@ -179,11 +253,11 @@ return (
 
         <section className="panel form-panel">
           <h2>Kalusto</h2>
-          <label>Vetäjä</label>
+          <label>Vetaja</label>
           <select value={tractor} onChange={(e) => setTractor(e.target.value)}>
-            <option>DTV171</option>
-            <option>DTV169</option>
-            <option>DVI253</option>
+            <option>TRK-101</option>
+            <option>TRK-102</option>
+            <option>TRK-103</option>
           </select>
 
           <label>Trailerityyppi</label>
@@ -199,9 +273,8 @@ return (
 
           <label>Soveltuvuus</label>
           <input value="Checked" readOnly />
-        </section>
 
-          <label>Ajo tänään</label>
+          <label>Ajo tanaan</label>
           <input
             type="number"
             step="0.5"
@@ -209,13 +282,101 @@ return (
             max="15"
             value={driverHoursToday}
             onChange={(e) => setDriverHoursToday(Number(e.target.value))}
-          />  
+          />
+        </section>
+
+        <section className="panel daily-plan-panel">
+          <div className="panel-header">
+            <h2>Daily Traffic Plan</h2>
+            <span>
+              {dailyJobs.length} jobs - Selected {selectedJob.id}
+            </span>
+          </div>
+
+          <div className="daily-plan-layout">
+            <div className="daily-plan-table-wrap">
+              <table className="daily-plan-table">
+                <thead>
+                  <tr>
+                    <th>Job / Trip ID</th>
+                    <th>Flow</th>
+                    <th>Type</th>
+                    <th>Customer</th>
+                    <th>Route</th>
+                    <th>Time</th>
+                    <th>Truck</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {dailyJobs.map((job) => (
+                    <tr
+                      key={job.id}
+                      className={job.id === selectedJobId ? "active-job-row" : ""}
+                      onClick={() => setSelectedJobId(job.id)}
+                    >
+                      <td className="job-id-cell">{job.id}</td>
+                      <td>{job.flowType}</td>
+                      <td>{job.jobType}</td>
+                      <td>{job.customer}</td>
+                      <td>
+                        {`${job.originCity} -> ${job.destinationCity}`}
+                      </td>
+                      <td>{job.timeWindow}</td>
+                      <td>{job.truck}</td>
+                      <td>
+                        <span className={getJobStatusClass(job.status)}>
+                          {job.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <aside className="selected-job-card">
+              <div className="selected-job-label">Selected Job</div>
+              <div className="selected-job-id">{selectedJob.id}</div>
+
+              <dl>
+                <dt>Flow</dt>
+                <dd>{selectedJob.flowType}</dd>
+
+                <dt>Type</dt>
+                <dd>{selectedJob.jobType}</dd>
+
+                <dt>Customer</dt>
+                <dd>{selectedJob.customer}</dd>
+
+                <dt>Route</dt>
+                <dd>
+                  {`${selectedJob.originCity} -> ${selectedJob.destinationCity}`}
+                </dd>
+
+                <dt>Time</dt>
+                <dd>{selectedJob.timeWindow}</dd>
+
+                <dt>Truck</dt>
+                <dd>{selectedJob.truck}</dd>
+
+                <dt>Status</dt>
+                <dd>
+                  <span className={getJobStatusClass(selectedJob.status)}>
+                    {selectedJob.status}
+                  </span>
+                </dd>
+              </dl>
+            </aside>
+          </div>
+        </section>
 
         <section className="panel route-panel">
           <div className="panel-header">
             <h2>Reitti + kartta</h2>
             <span>
-              {loadingCity} → {unloadingCity}
+              {`${loadingCity} -> ${unloadingCity}`}
             </span>
           </div>
 
@@ -245,16 +406,16 @@ return (
           </div>
 
           <dl>
-            <dt>Etäisyys</dt>
+            <dt>Etaisyys</dt>
             <dd>{plan.distanceKm} km</dd>
 
             <dt>Ajoaika</dt>
             <dd>{formatHours(plan.drivingHours)}</dd>
 
-            <dt>Kuljettajan ajo tänään</dt>
+            <dt>Kuljettajan ajo tanaan</dt>
             <dd>{formatHours(driverHoursToday)}</dd>
 
-            <dt>Ajo yhteensä</dt>
+            <dt>Ajo yhteensa</dt>
             <dd>{formatHours(plan.totalDrivingWithHistory)}</dd>
 
             <dt>Tauko</dt>
