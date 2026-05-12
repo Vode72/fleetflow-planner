@@ -257,6 +257,14 @@ function getJobTimeLabel(job) {
   return `${loading}-${delivery}`;
 }
 
+function getBoardJobTimeLabel(job) {
+  const loading =
+    job?.loadingTimeExact || job?.loadingTimeRange || job?.loadingTime || "Start TBD";
+  const delivery =
+    job?.deliveryTimeExact || job?.deliveryTimeRange || job?.deliveryTime || "End TBD";
+  return `${loading}-${delivery}`;
+}
+
 function getNextStepForJob(job) {
   if (job.destinationCity.includes("Port")) return "Port";
   if (job.destinationCity === "Demo Terminal BP") return "Demo Terminal";
@@ -408,7 +416,7 @@ function DailyCapacity({ dailyJobs, onResetDemoPlan, actionFeedback, actionFeedb
   ).size;
 
   return (
-    <section className="panel capacity-panel cockpit-capacity">
+    <section className="panel capacity-panel cockpit-capacity board-panel board-kpi-panel">
       <h2>Daily Capacity</h2>
       <dl className="capacity-list">
         <dt>Jobs today</dt>
@@ -439,151 +447,6 @@ function DailyCapacity({ dailyJobs, onResetDemoPlan, actionFeedback, actionFeedb
   );
 }
 
-function SelectedJobCard({ job }) {
-  return (
-    <aside className="panel selected-job-card cockpit-selected-job">
-      <div className="selected-job-label">Selected Job</div>
-      <div className="selected-job-id">{job.id}</div>
-
-      <dl>
-        <dt>Flow</dt>
-        <dd>{job.flow}</dd>
-
-        <dt>Type</dt>
-        <dd>{job.type}</dd>
-
-        <dt>Customer</dt>
-        <dd>{job.customer}</dd>
-
-        <dt>Route</dt>
-        <dd>{`${job.originCity} -> ${job.destinationCity}`}</dd>
-
-        <dt>Time</dt>
-        <dd>
-          <span className={getTimeSlotClassName(job, "loading")}>{getJobTimeLabel(job)}</span>
-        </dd>
-
-        <dt>Truck</dt>
-        <dd>{job.truck}</dd>
-
-        <dt>Handling</dt>
-        <dd>{`${job.handlingType} - ${job.handlingDurationMinutes} min`}</dd>
-
-        <dt>Next step</dt>
-        <dd>{job.nextStep}</dd>
-
-        <dt>Status</dt>
-        <dd>
-          <span className={getJobStatusClass(job.status)}>{job.status}</span>
-        </dd>
-      </dl>
-    </aside>
-  );
-}
-
-function FleetSequencePreview({
-  dailyJobs = [],
-  fleetTrucks = [],
-  selectedJobId,
-  planCheckResults,
-  onSelectJob,
-}) {
-  const truckList =
-    Array.isArray(fleetTrucks) && fleetTrucks.length > 0
-      ? fleetTrucks
-      : Array.from(
-          new Set(dailyJobs.map((job) => job.truck).filter((truck) => truck !== "Unassigned")),
-        );
-
-  return (
-    <section className="panel board-fleet-panel scrollable">
-      <div className="panel-header">
-        <h2>Fleet sequence</h2>
-        <span>{truckList.length} trucks</span>
-      </div>
-
-      <div className="board-fleet-list">
-        {truckList.map((truck) => {
-          const truckJobs = dailyJobs
-            .filter((job) => job.truck === truck)
-            .sort((a, b) => getJobStartTime(a).localeCompare(getJobStartTime(b)));
-
-          return (
-            <div key={truck} className="board-fleet-truck">
-              <div className="board-fleet-truck-header">
-                <strong>{truck}</strong>
-                <span>{truckJobs.length} jobs</span>
-              </div>
-
-              {truckJobs.map((job) => {
-                const checkedJob = planCheckResults?.jobsById[job.id];
-                const displayStatus = checkedJob?.status || job.status;
-
-                return (
-                  <button
-                    key={job.id}
-                    type="button"
-                    className={`board-fleet-job ${job.id === selectedJobId ? "active" : ""} ${
-                      checkedJob && checkedJob.status !== job.status ? "suggested-job" : ""
-                    }`}
-                    onClick={() => onSelectJob(job)}
-                  >
-                    <span className={getTimeSlotClassName(job, "loading")}>
-                      {getJobTimeLabel(job)}
-                    </span>
-                    <span>{job.id}</span>
-                    <span>{`${job.originCity} -> ${job.destinationCity}`}</span>
-                    <span className={getJobStatusClass(displayStatus)}>{displayStatus}</span>
-                  </button>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-function JobEventLog({ job, eventLog = [] }) {
-  if (!job) {
-    return (
-      <section className="panel notes-panel cockpit-event-log scrollable">
-        <div className="panel-header">
-          <h2>Job Event Log</h2>
-          <span>—</span>
-        </div>
-        <p>No job selected</p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="panel notes-panel cockpit-event-log scrollable">
-      <div className="panel-header">
-        <h2>Job Event Log</h2>
-        <span>{job.id}</span>
-      </div>
-
-      <ul>
-        {eventLog.map((item, index) => (
-          <li
-            key={index}
-            className={
-              /warning|risk|break|required|overlap|tight|buffer|flexible/i.test(item)
-                ? "event-warning"
-                : ""
-            }
-          >
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            {item}
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
 export default function App() {
   const [theme, setTheme] = useState("classic");
   const [dailyJobs, setDailyJobs] = useState(initialDailyJobs);
@@ -600,6 +463,7 @@ export default function App() {
   const [actionFeedbackType, setActionFeedbackType] = useState("info");
   const [detailsTab, setDetailsTab] = useState("driving");
   const [workspaceTab, setWorkspaceTab] = useState("board");
+  const [boardDetailTab, setBoardDetailTab] = useState("selectedJob");
   const [planCheckResults, setPlanCheckResults] = useState(null);
 
   const emptySelectedJob = {
@@ -1148,6 +1012,104 @@ export default function App() {
       })),
     [dailyJobs, fleetTrucks],
   );
+
+  const boardOverview = useMemo(() => {
+    const isAssigned = (job) => Boolean(job.truck && job.truck !== "Unassigned");
+    const totalJobs = dailyJobs.length;
+    const assignedJobs = dailyJobs.filter(isAssigned).length;
+    const openJobs = dailyJobs.filter((job) => job.status === "Open").length;
+    const riskJobs = dailyJobs.filter((job) => job.status === "Risk").length;
+    const breakRequiredJobs = dailyJobs.filter(
+      (job) => job.status === "Break required",
+    ).length;
+    const trucksInUse = new Set(dailyJobs.filter(isAssigned).map((job) => job.truck)).size;
+    const unassignedJobs = dailyJobs.filter(
+      (job) => !isAssigned(job) || job.status === "Open",
+    ).length;
+
+    const workload = dailyJobs.reduce(
+      (acc, job) => {
+        if (job.flow === "Export") acc.export += 1;
+        else if (job.flow === "Import") acc.import += 1;
+        else acc.other += 1;
+        return acc;
+      },
+      { export: 0, import: 0, other: 0 },
+    );
+
+    return {
+      totalJobs,
+      assignedJobs,
+      openJobs,
+      riskJobs,
+      breakRequiredJobs,
+      trucksInUse,
+      unassignedJobs,
+      workload,
+      overallDayStatus:
+        riskJobs > 0
+          ? "Risk"
+          : openJobs > 0
+            ? "Open items"
+            : breakRequiredJobs > 0
+              ? "Break planning"
+              : "OK",
+    };
+  }, [dailyJobs]);
+
+  const boardFleetPreview = useMemo(
+    () =>
+      fleetTruckSequences.map(({ truck, jobs }) => {
+        const status = jobs.some((job) => job.status === "Risk")
+          ? "Risk"
+          : jobs.some((job) => job.status === "Break required")
+            ? "Break required"
+            : jobs.some((job) => job.status === "Open")
+              ? "Open"
+              : "OK";
+
+        return {
+          truck,
+          jobs,
+          status,
+          nextJob: jobs[0],
+        };
+      }),
+    [fleetTruckSequences],
+  );
+
+  const openAssignmentJobs = useMemo(
+    () =>
+      dailyJobs.filter(
+        (job) => job?.status === "Open" || job?.truck === "Unassigned",
+      ),
+    [dailyJobs],
+  );
+
+  const firstOpenAssignmentJob = openAssignmentJobs[0];
+
+  const boardOperationalNotes = useMemo(() => {
+    const notes = [];
+
+    if (actionFeedback) {
+      notes.push(`Last action: ${actionFeedback}`);
+    }
+
+    if (selectedJob?.id) {
+      notes.push(`Selected ${selectedJob.id} loaded.`);
+    } else {
+      notes.push("No selected job.");
+    }
+
+    notes.push(`${boardOverview.openJobs} open job(s) require assignment.`);
+    notes.push(`${boardOverview.breakRequiredJobs} job(s) require break planning.`);
+    notes.push(`${boardOverview.riskJobs} risk job(s) require review.`);
+    notes.push(`${boardOverview.trucksInUse} truck(s) currently in use.`);
+    notes.push("Use Fleet tab for Check Plan.");
+    notes.push("Demo plan reset status available.");
+
+    return notes;
+  }, [actionFeedback, boardOverview, selectedJob]);
 
   const fleetEventEntries = useMemo(() => {
     const entries = [];
@@ -1714,17 +1676,41 @@ export default function App() {
 
   return (
     <div className={`app ${theme}`}>
-      <header className="topbar">
-        <div>
-          <h1>FleetFlow Planner</h1>
-          <span>TMS-style transport planning dashboard</span>
+      <header className="topbar app-header">
+        <div className="brand">
+          <div className="brand-logo" aria-hidden="true">
+            <svg viewBox="0 0 96 40" focusable="false">
+              <rect x="7" y="12" width="50" height="14" rx="2" />
+              <path d="M61 14h15l10 8v4H61z" />
+              <rect x="13" y="16" width="38" height="3" rx="1" opacity="0.45" />
+              <circle cx="22" cy="30" r="4" />
+              <circle cx="52" cy="30" r="4" />
+              <circle cx="76" cy="30" r="4" />
+            </svg>
+          </div>
+
+          <div className="brand-copy">
+            <h1>FleetFlow Planner</h1>
+            <p>Daily Traffic Planning Cockpit</p>
+          </div>
         </div>
 
-        <select value={theme} onChange={(e) => setTheme(e.target.value)}>
-          <option value="classic">Classic</option>
-          <option value="dark">Dark</option>
-          <option value="light">SAP Light</option>
-        </select>
+        <div className="header-actions">
+          <span className="demo-badge">Demo cockpit</span>
+
+          <div className="theme-control">
+            <label htmlFor="theme-select">Theme</label>
+            <select
+              id="theme-select"
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+            >
+              <option value="classic">Classic</option>
+              <option value="dark">Dark</option>
+              <option value="light">SAP Light</option>
+            </select>
+          </div>
+        </div>
       </header>
 
       <nav className="workspace-tabs" aria-label="FleetFlow workspace tabs">
@@ -1742,77 +1728,298 @@ export default function App() {
 
       {workspaceTab === "board" && (
         <section className="workspace-view board-view">
-          {/* Step 7 Board cockpit: left traffic plan and right planning controls. */}
-          <main className="cockpit-board-grid step7-board-grid board-cockpit">
-            <section className="board-left-column board-left scrollable">
-              <DailyCapacity dailyJobs={dailyJobs} />
-              <section className="panel daily-plan-panel cockpit-daily-plan daily-traffic-plan scrollable">
+          <main className="board-cockpit board-three-column">
+            <section className="board-left-column">
+              <DailyCapacity
+                dailyJobs={dailyJobs}
+                onResetDemoPlan={handleResetDemoPlan}
+                actionFeedback={actionFeedback}
+                actionFeedbackType={actionFeedbackType}
+              />
+
+              <section className="panel board-panel board-detail-panel">
                 <div className="panel-header">
-                  <h2>Daily Traffic Plan</h2>
-                  <span>
-                    {dailyJobs.length} jobs - Selected {selectedJob.id}
-                  </span>
+                  <h2>Board Detail Panel</h2>
+                  <span>Board</span>
                 </div>
 
-                <div className="daily-plan-table-wrap cockpit-table-wrap">
-                  <table className="daily-plan-table">
-                    <thead>
-                      <tr>
-                        <th>Job / Trip ID</th>
-                        <th>Flow</th>
-                        <th>Type</th>
-                        <th>Customer</th>
-                        <th>Route</th>
-                        <th>Time</th>
-                        <th>Truck</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
+                <div className="board-detail-tabs" role="tablist" aria-label="Board details">
+                  <button
+                    type="button"
+                    className={
+                      boardDetailTab === "selectedJob"
+                        ? "board-detail-tab active"
+                        : "board-detail-tab"
+                    }
+                    onClick={() => setBoardDetailTab("selectedJob")}
+                  >
+                    Selected Job
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      boardDetailTab === "operationalNotes"
+                        ? "board-detail-tab active"
+                        : "board-detail-tab"
+                    }
+                    onClick={() => setBoardDetailTab("operationalNotes")}
+                  >
+                    Operational Notes
+                  </button>
+                </div>
 
-                    <tbody>
-                      {dailyJobs.map((job) => {
-                        const checkedJob = planCheckResults?.jobsById[job.id];
-                        const isSuggested = checkedJob && checkedJob.status !== job.status;
+                <div className="board-detail-content scrollable">
+                  {boardDetailTab === "selectedJob" &&
+                    (selectedJob?.id ? (
+                      <>
+                        <div className="selected-job-label">Selected Job</div>
+                        <div className="selected-job-id">
+                          {selectedJob.id || "No selected job"}
+                        </div>
 
-                        return (
-                          <tr
-                            key={job.id}
-                            className={`${job.id === selectedJobId ? "active-job-row" : ""} ${
-                              isSuggested ? "suggested-job" : ""
-                            }`}
-                            onClick={() => {
-                              setSelectedJobId(job.id);
-                              syncPlannerStateFromJob(job);
-                            }}
-                          >
-                            <td className="job-id-cell">{job.id}</td>
-                            <td>{job.flow}</td>
-                            <td>{job.type}</td>
-                            <td>{job.customer}</td>
-                            <td>{`${job.originCity} -> ${job.destinationCity}`}</td>
-                            <td>
-                              <span className={getTimeSlotClassName(job, "loading")}>
-                                {getJobTimeLabel(job)}
+                        <dl className="selected-job-summary-grid">
+                          <div className="selected-job-summary-item">
+                            <dt>Job ref</dt>
+                            <dd>{selectedJob.id || "No job ID"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Flow</dt>
+                            <dd>{selectedJob.flow || "Flow TBD"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Type</dt>
+                            <dd>{selectedJob.type || "Type TBD"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Customer</dt>
+                            <dd>{selectedJob.customer || "Unknown customer"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Route</dt>
+                            <dd>{`${selectedJob.originCity || "Unknown origin"} -> ${
+                              selectedJob.destinationCity || "Unknown destination"
+                            }`}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Time</dt>
+                            <dd>{getBoardJobTimeLabel(selectedJob) || "Time TBD"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Truck</dt>
+                            <dd>{selectedJob.truck || "Unassigned"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Trailer</dt>
+                            <dd>{selectedJob.trailerType || "Trailer TBD"}</dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Status</dt>
+                            <dd>
+                              <span className={getJobStatusClass(selectedJob.status)}>
+                                {selectedJob.status || "Status unknown"}
                               </span>
-                            </td>
-                            <td>{job.truck}</td>
-                            <td>
-                              <span className={getJobStatusClass(job.status)}>{job.status}</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </dd>
+                          </div>
+                          <div className="selected-job-summary-item">
+                            <dt>Handling</dt>
+                            <dd>{`${selectedJob.handlingType || "Handling not set"} - ${
+                              selectedJob.handlingDurationMinutes || "Duration TBD"
+                            } min`}</dd>
+                          </div>
+                        </dl>
+                      </>
+                    ) : (
+                      <p>No selected job</p>
+                    ))}
+
+                  {boardDetailTab === "operationalNotes" && (
+                    <ul className="board-operational-notes-list">
+                      {boardOperationalNotes.map((note, index) => (
+                        <li key={`${note}-${index}`} className="board-note-row">
+                          <span className="board-note-bullet" aria-hidden="true">
+                            &bull;
+                          </span>
+                          <span>{note}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </section>
             </section>
 
-            <aside className="board-right-column board-right scrollable">
-              <SelectedJobCard job={selectedJob} />
-              <FleetSequencePreview dailyJobs={dailyJobs} />
-              <JobEventLog job={selectedJob} />
-            </aside>
+            <section className="board-center-column">
+              <section className="panel board-panel board-kpi-panel">
+                <h2>Day Status</h2>
+                <dl className="capacity-list">
+                  <dt>Overall</dt>
+                  <dd>{boardOverview.overallDayStatus}</dd>
+                  <dt>Open</dt>
+                  <dd>{boardOverview.openJobs}</dd>
+                  <dt>Risk</dt>
+                  <dd>{boardOverview.riskJobs}</dd>
+                  <dt>Break required</dt>
+                  <dd>{boardOverview.breakRequiredJobs}</dd>
+                </dl>
+              </section>
+
+              <section className="panel board-panel board-kpi-panel">
+                <h2>Workload</h2>
+                <dl className="capacity-list">
+                  <dt>Total jobs</dt>
+                  <dd>{boardOverview.totalJobs}</dd>
+                  <dt>Export</dt>
+                  <dd>{boardOverview.workload.export}</dd>
+                  <dt>Import</dt>
+                  <dd>{boardOverview.workload.import}</dd>
+                  <dt>Other</dt>
+                  <dd>{boardOverview.workload.other}</dd>
+                </dl>
+              </section>
+
+              <section className="panel board-panel board-kpi-panel">
+                <h2>Fleet Status</h2>
+                <dl className="capacity-list">
+                  <dt>Trucks in use</dt>
+                  <dd>{boardOverview.trucksInUse}</dd>
+                  <dt>Unassigned</dt>
+                  <dd>{boardOverview.unassignedJobs}</dd>
+                  <dt>Break warnings</dt>
+                  <dd>{boardOverview.breakRequiredJobs}</dd>
+                  <dt>Additional needed</dt>
+                  <dd>Not checked yet</dd>
+                </dl>
+              </section>
+
+              <section className="panel board-panel board-next-attention">
+                <h2>Next Attention</h2>
+                {openAssignmentJobs.length > 0 ? (
+                  <>
+                    <div className="next-attention-status">Open assignment</div>
+                    <p className="next-attention-muted">
+                      {openAssignmentJobs.length}{" "}
+                      {openAssignmentJobs.length === 1 ? "job" : "jobs"} still unassigned.
+                    </p>
+
+                    {firstOpenAssignmentJob && (
+                      <div className="next-attention-job">
+                        <strong>{firstOpenAssignmentJob.id || "No job ID"}</strong>
+                        <span>
+                          {firstOpenAssignmentJob.originCity || "Unknown origin"} -&gt;{" "}
+                          {firstOpenAssignmentJob.destinationCity || "Unknown destination"}
+                        </span>
+                        <span>{getBoardJobTimeLabel(firstOpenAssignmentJob) || "Time TBD"}</span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="next-attention-status">No open assignments.</div>
+                    <p className="next-attention-muted">Fleet assignment status is clear.</p>
+                  </>
+                )}
+              </section>
+            </section>
+
+            <section className="board-right-column">
+              <section className="panel board-panel cockpit-daily-plan daily-traffic-plan">
+                <div className="panel-header">
+                  <h2>Daily Traffic Plan</h2>
+                  <span>
+                    {dailyJobs.length} jobs - Selected {selectedJob?.id || "No selected job"}
+                  </span>
+                </div>
+
+                <div className="board-job-list scrollable">
+                  {dailyJobs.length === 0 ? (
+                    <p>No jobs available</p>
+                  ) : (
+                    dailyJobs.map((job) => {
+                      const checkedJob = planCheckResults?.jobsById[job.id];
+                      const isSuggested = checkedJob && checkedJob.status !== job.status;
+                      const jobId = job.id || "No job ID";
+                      const customer = job.customer || "Unknown customer";
+                      const flow = job.flow || "Flow TBD";
+                      const type = job.type || "Type TBD";
+                      const origin = job.originCity || "Unknown origin";
+                      const destination = job.destinationCity || "Unknown destination";
+                      const truck = job.truck || "Unassigned";
+                      const status = job.status || "Status unknown";
+
+                      return (
+                        <button
+                          key={jobId}
+                          type="button"
+                          className={`board-job-row ${job.id === selectedJobId ? "active" : ""} ${
+                            isSuggested ? "suggested-job" : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedJobId(job.id);
+                            syncPlannerStateFromJob(job);
+                          }}
+                        >
+                          <span className="board-job-primary">
+                            <strong>{jobId}</strong>
+                            <span>{customer}</span>
+                          </span>
+                          <span className="board-job-meta">
+                            {flow} / {type} | {origin} -&gt; {destination} |{" "}
+                            <span className={getTimeSlotClassName(job, "loading")}>
+                              {getBoardJobTimeLabel(job)}
+                            </span>{" "}
+                            | {truck} | {status}
+                          </span>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+
+              <section className="panel board-panel board-fleet-preview scrollable">
+                <div className="panel-header">
+                  <h2>Fleet Preview</h2>
+                  <span>{boardFleetPreview.length} trucks</span>
+                </div>
+
+                <div className="board-fleet-preview-list">
+                  {boardFleetPreview.length === 0 ? (
+                    <p>No assigned trucks</p>
+                  ) : (
+                    boardFleetPreview.map(({ truck, jobs, status, nextJob }) => (
+                      <button
+                        key={truck}
+                        type="button"
+                        className="board-fleet-preview-card"
+                        onClick={() => {
+                          if (!nextJob) return;
+                          setSelectedJobId(nextJob.id);
+                          syncPlannerStateFromJob(nextJob);
+                        }}
+                      >
+                        <div className="fleet-preview-card-header">
+                          {truck} | {jobs.length} jobs | {status}
+                        </div>
+                        {nextJob && (
+                          <>
+                            <div className="fleet-preview-next">
+                              Next: {nextJob.id || "No job ID"}
+                            </div>
+                            <div className="fleet-preview-next">
+                              {nextJob.originCity || "Unknown origin"} -&gt;{" "}
+                              {nextJob.destinationCity || "Unknown destination"}
+                            </div>
+                            <div className="fleet-preview-next">
+                              {getBoardJobTimeLabel(nextJob)}
+                            </div>
+                          </>
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </section>
+            </section>
           </main>
 
           <div className="legacy-board-wrapper">
