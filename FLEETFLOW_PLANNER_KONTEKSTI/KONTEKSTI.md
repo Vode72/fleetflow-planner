@@ -364,6 +364,90 @@ npm run build passed
 
 ---
 
+## Step 7.1A.1 - Board Daily Traffic Overview layout fix
+
+Board-valilehti on nyt tiivis Daily Traffic Overview -nakyma.
+
+Toteutettu rakenne:
+
+- vasen control-sarake:
+  - Daily Capacity
+  - Selected Job
+  - Operational Notes
+- oikea levea traffic-sarake:
+  - Day Status / Workload / Fleet Status
+  - Daily Traffic Plan
+  - Fleet Preview
+
+Tarkea layout-korjaus:
+
+- Daily Traffic Plan ei enaa odota vasemman Daily Capacity -paneelin korkeutta.
+- Board jaettiin kahteen itsenaiseen pystysarakkeeseen:
+  - `.board-control-column`
+  - `.board-traffic-column`
+- Daily Traffic Plan alkaa suoraan oikean ylarivin KPI-paneelien alareunan alta.
+- Daily Traffic Planin korkeutta kasvatettiin oikean traffic-sarakkeen keskialueessa.
+- Pitkat listat scrollaavat paneelien sisalla:
+  - Daily Traffic Plan
+  - Fleet Preview
+  - Operational Notes
+
+Boardin KPI-rivi:
+
+- Daily Capacity pysyy vasemmalla ylhaalla.
+- Day Status, Workload ja Fleet Status ovat oikean traffic-sarakkeen ylarivilla.
+- Day Status / Workload / Fleet Status pidetaan kompakteina, ilman turhaa alatyhjaa.
+
+Selected Job:
+
+- Sijainti: vasemmassa control-sarakkeessa Daily Capacityn alla.
+- Kayttaa 2-column summary -rakennetta.
+- Sisaltoa ei leikata normaalissa desktop-nakymassa.
+
+Operational Notes:
+
+- Sijainti: vasemmassa control-sarakkeessa Selected Jobin alla.
+- Muutettu Board-tason bullet-listaksi.
+- Ei kayteta 01 / 02 / 03 event-log-numerointia.
+- Ei ole Job Planning Log eika Fleet Event Log.
+
+Fleet Preview:
+
+- Sijainti: oikeassa traffic-sarakkeessa Daily Traffic Planin alla.
+- Kevyt Board-yhteenveto, ei taytta Fleet Timelinea.
+- Assigned truck -kortit kayttavat responsiivista gridia.
+- TR-101 ja TR-102 voivat nakya rinnakkain, jos tila riittaa.
+- Unassigned nakyy omana taysleveana korttinaan.
+- Korttien tekstit on jaettu header- ja next-riveihin, jotta tekstit eivat mene paallekkain.
+
+Sailytykset ja rajaukset:
+
+- Ei muutoksia Job-valilehteen.
+- Ei muutoksia Fleet-valilehteen.
+- Ei muutoksia Route & Risk -valilehteen.
+- Ei muutoksia dailyJobs-demodataan.
+- Ei muutoksia ETA-, route/map- tai EU driving time -logiikkaan.
+- Ei Check Plania, Suggested Plania, Accept/Reject-toimintoja tai Additional Truck Needed -algoritmia Boardiin.
+- Reset demo plan -logiikka sailyi.
+- Theme-rakenne sailyi:
+  - classic
+  - light / SAP Light
+  - dark
+
+Muokatut tiedostot:
+
+- `src/App.jsx`
+- `src/App.css`
+
+Verifiointi:
+
+```text
+npm run lint passed
+npm run build passed
+```
+
+---
+
 ## Step 6.2 — Fleet Timeline / Truck Sequences View
 
 Fleet-välilehdelle lisättiin autokohtainen päivän job sequence -näkymä.
