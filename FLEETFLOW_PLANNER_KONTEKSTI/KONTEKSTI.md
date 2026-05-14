@@ -1384,3 +1384,179 @@ Build:
 ```text
 npm run build passed
 ```
+---
+
+## Step 7.1B — Board 3-Column Cockpit Layout
+
+Board-välilehti on päivitetty 3-column cockpit -rakenteeseen.
+
+Toteutettu rakenne:
+
+```text
+Board
+├── Left Control Column
+│   ├── Daily Capacity
+│   └── Board Detail Panel
+│       ├── Selected Job
+│       └── Operational Notes
+│
+├── Center Status Column
+│   ├── Day Status
+│   ├── Workload
+│   ├── Fleet Status
+│   └── Next Attention
+│
+└── Right Operations Column
+    ├── Daily Traffic Plan
+    └── Fleet Preview
+
+---
+
+### Boardin pääidea
+
+Board on päivän yleisnäkymä.
+
+Board vastaa kysymykseen:
+
+**Mikä on päivän tilanne juuri nyt?**
+
+Board ei ole syvä editointinäkymä eikä Fleet-tason plan validation -näkymä. Sen tehtävä on näyttää nopeasti:
+
+- päivän kapasiteetti
+- päivän jobit
+- valittu job
+- avoimet assignmentit
+- fleetin kevyt tilanne
+- seuraava huomiota vaativa asia
+
+### Left Control Column
+
+Vasemmassa sarakkeessa ovat:
+
+- Daily Capacity
+- Board Detail Panel
+
+Daily Capacity näyttää:
+
+- Jobs today
+- Assigned
+- Open
+- Risk
+- Break required
+- Trucks in use
+- Reset demo plan -painike
+- actionFeedback, jos käyttäjä on tehnyt toiminnon
+
+Board Detail Panel sisältää sisäiset tabit:
+
+- Selected Job
+- Operational Notes
+
+Vain toinen näkyy kerrallaan.
+
+Tämä ratkaisu korvaa aiemman mallin, jossa Selected Job ja Operational Notes olivat yhtä aikaa erillisinä ahtaissa paneeleissa.
+
+### Board Detail Panel — Selected Job
+
+Selected Job näyttää valitun jobin tiiviinä 2-column summary -rakenteena.
+
+Näytettävät tiedot:
+
+- Job ref
+- Flow
+- Type
+- Customer
+- Route
+- Time
+- Truck
+- Trailer
+- Status
+- Handling
+
+Selected Job käyttää placeholder-tekstejä, jos jokin arvo puuttuu.
+
+Esimerkkejä:
+
+- `No job ID`
+- `Flow TBD`
+- `Type TBD`
+- `Unknown customer`
+- `Unknown origin`
+- `Unknown destination`
+- `Time TBD`
+- `Trailer TBD`
+- `Status unknown`
+- `Handling not set`
+
+### Board Detail Panel — Operational Notes
+
+Operational Notes on Board-tason bullet-lista.
+
+Se ei ole Job Planning Log eikä Fleet Event Log.
+
+Nykyinen sisältö muodostuu `boardOperationalNotes`-logiikasta.
+
+Operational Notes näyttää esimerkiksi:
+
+- viimeisin käyttäjän actionFeedback
+- valittu job ladattu
+- avoimet jobit
+- break planning -jobit
+- risk jobit
+- käytössä olevat truckit
+- muistutus käyttää Fleet-välilehteä Check Plania varten
+- demo reset -status
+
+Nykyinen Operational Notes on teknisesti toimiva, mutta sisältö on vielä osittain staattinen.
+
+Myöhempi kehitysidea:
+
+Operational Notes jaetaan sisällöllisesti kahteen osaan:
+
+1. Board notes
+   - open jobs
+   - break jobs
+   - risk jobs
+   - check plan reminder
+
+2. Selected job notes
+   - selected job loaded
+   - selected job status
+   - truck assignment
+   - handling
+   - next action
+
+### Center Status Column
+
+Keskisarakkeessa ovat:
+
+- Day Status
+- Workload
+- Fleet Status
+- Next Attention
+
+Day Status näyttää:
+
+- Overall
+- Open
+- Risk
+- Break required
+
+Workload näyttää:
+
+- Total jobs
+- Export
+- Import
+- Other
+
+Fleet Status näyttää:
+
+- Trucks in use
+- Unassigned
+- Break warnings
+- Additional needed
+
+Additional needed on tässä vaiheessa placeholder:
+
+```text
+Not checked yet
