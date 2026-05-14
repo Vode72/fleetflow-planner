@@ -3564,7 +3564,337 @@ button.board-fleet-preview-card:hover {
     grid-template-columns: 1fr;
   }
 
-  .route-right {
+.route-right {
     max-height: none;
+  }
+}
+
+.job-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.job-workspace-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  border-radius: 10px;
+}
+
+.job-selector-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 360px;
+}
+
+.job-selector-block label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.job-selector-block select {
+  width: 100%;
+}
+
+.job-workspace-tabs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  border-radius: 10px;
+}
+
+.job-workspace-tabs .job-workspace-tab {
+  width: auto;
+  min-width: 128px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--panel-header);
+  color: var(--text-main);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  box-shadow: none;
+}
+
+.job-workspace-tabs .job-workspace-tab:hover {
+  background: var(--panel-bg);
+  border-color: var(--accent);
+  color: var(--text-main);
+}
+
+.job-workspace-tabs .job-workspace-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.job-workspace-tabs .job-workspace-tab.active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.job-workspace-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 12px;
+  min-height: 0;
+}
+
+.job-workspace-main,
+.job-workspace-side {
+  min-height: 0;
+}
+
+.job-tab-panel,
+.side-panel {
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  border-radius: 10px;
+  padding: 14px;
+  min-height: 0;
+}
+
+.panel-section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.panel-section-header h3 {
+  margin: 0;
+}
+
+.job-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.job-summary-grid > div,
+.trip-summary-strip > div {
+  border: 1px solid var(--border);
+  background: var(--panel-header);
+  border-radius: 8px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.job-summary-grid span,
+.trip-summary-strip span {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.job-summary-grid strong,
+.trip-summary-strip strong {
+  display: block;
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+}
+
+.trip-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.job-data-table-wrapper {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.job-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.job-data-table th,
+.job-data-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.job-data-table th {
+  background: var(--panel-header);
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.requirement-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.requirement-badges span {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  background: var(--panel-header);
+}
+
+.job-node-list {
+  display: grid;
+  gap: 10px;
+}
+
+.job-node-card {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-header);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.job-node-index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.job-node-card strong,
+.job-node-card span {
+  display: block;
+}
+
+.job-node-card span {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.job-node-card p {
+  margin: 6px 0 0;
+  font-size: 0.84rem;
+}
+
+.job-assignment-action {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  background: var(--panel-header);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.assignment-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.job-instruction-preview {
+  border: 1px solid var(--border);
+  background: var(--panel-header);
+  border-radius: 8px;
+  padding: 12px;
+  line-height: 1.5;
+}
+
+.job-instruction-preview p {
+  margin: 0 0 10px;
+}
+
+.demo-note {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.job-validation-list {
+  display: grid;
+  gap: 8px;
+}
+
+.job-validation-list > div {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-header);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.job-validation-list span {
+  color: var(--text-muted);
+}
+
+.job-planning-log {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.job-planning-log li {
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+@media (max-width: 1100px) {
+  .job-workspace-header,
+  .job-workspace-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .job-workspace-header {
+    flex-direction: column;
+  }
+
+  .job-selector-block {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .job-summary-grid,
+  .trip-summary-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .job-workspace-layout {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 700px) {
+  .job-summary-grid,
+  .trip-summary-strip,
+  .job-validation-list > div {
+    grid-template-columns: 1fr;
   }
 }

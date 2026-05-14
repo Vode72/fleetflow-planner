@@ -241,20 +241,22 @@ Työjärjestelmien rakenteita ja logiikkaa voidaan käyttää vain idean ja layo
 
 ---
 
-## Nykyinen layout
+## Nykyinen päälayout
 
-Yläosa:
+FleetFlow Planner käyttää cockpit-rakennetta:
 
-- Lastaus
-- Purku
-- Kalusto
-- Ajotiedot
+- Board
+- Job
+- Fleet
+- Route & Risk
 
-Alaosa:
+Board on tällä hetkellä pisimmälle viimeistelty näkymä ja käyttää 3-column cockpit -rakennetta:
 
-- Kartta
-- Suunnitelman huomautukset
-- Ajotiedot oikealla
+- Left Control Column
+- Center Status Column
+- Right Operations Column
+
+Job-välilehti on seuraava merkittävä kehityskohde. Se muutetaan yhdestä pitkästä lomakkeesta ammattimaiseksi TMS-työtilaksi, jossa on sisäiset välilehdet.
 
 ---
 
@@ -509,7 +511,7 @@ Päävälilehdet:
 
 Board on oletusnäkymä ja näyttää nykyisen toimivan planner-layoutin.
 
-Job, Fleet ja Route & Risk ovat tässä vaiheessa kevyitä placeholder-näkymiä tulevia kehitysvaiheita varten.
+Cockpit-rakenne on toteutettu. Board on oletusnäkymä. Fleet-välilehdelle on jo lisätty truck sequence -näkymä. Job-välilehdellä on nykyinen Job Input / Edit -pohjainen rakenne, joka muutetaan seuraavaksi ammattimaiseksi sisäisten välilehtien työtilaksi. Route & Risk on vielä kevyempi kehityskohde.
 
 Tässä vaiheessa ei vielä siirretty toiminnallisuuksia eri näkymiin.
 
@@ -1377,13 +1379,13 @@ Tulos:
 - Status-pill, esimerkiksi OK, näkyy ilman sisäistä scrollia
 - kortti pysyy tiiviinä ja TMS/SAP/EVO-tyylisenä
 
-Build:
 
 Build:
 
 ```text
 npm run build passed
 ```
+
 ---
 
 ## Step 7.1B — Board 3-Column Cockpit Layout
@@ -1409,6 +1411,7 @@ Board
 └── Right Operations Column
     ├── Daily Traffic Plan
     └── Fleet Preview
+```
 
 ---
 
@@ -1560,3 +1563,1260 @@ Additional needed on tässä vaiheessa placeholder:
 
 ```text
 Not checked yet
+```
+
+---
+
+## Toimintamalli — ChatGPT suunnittelee, Codex toteuttaa
+
+FleetFlow Planner -projektissa käytetään jatkossa työnjakoa:
+
+- ChatGPT toimii suunnittelijana, arkkitehtina ja sparraajana.
+- Käyttäjä ja ChatGPT suunnittelevat ominaisuudet, UI-rakenteet, logiikan ja etenemisjärjestyksen.
+- Codex tekee varsinaiset koodimuutokset projektin tiedostoihin.
+- ChatGPT antaa Codexille suoraan kopioitavan promptin.
+- Codexille annettava prompti sisältää aina selkeän tavoitteen, rajaukset, tiedostot, muutoskohdat ja testausohjeet.
+- Koodimuutokset tehdään pienissä, turvallisissa vaiheissa.
+- Ei tehdä liian isoja refaktorointeja kerralla, ellei se ole välttämätöntä.
+- Ei korvata koko sovellusta, ellei käyttäjä erikseen pyydä.
+- Nykyinen toimiva rakenne säilytetään aina mahdollisimman pitkälle.
+- Jokaisen vaiheen jälkeen ajetaan vähintään:
+
+```bash
+npm run lint
+npm run build
+```
+
+---
+
+# FleetFlow Planner — Päivitetty konteksti / Trip–Order–Node–Job-malli
+
+## Päivityksen tarkoitus
+
+FleetFlow Plannerin suunta tarkentuu uusien työnkulkujen, kuljetusyhtiöille annettujen ohjeistusesimerkkien ja TMS-/EVO-tyylisten kuvien perusteella.
+
+FleetFlow Planner ei ole pelkkä job-lista, yksittäisen ajon planneri tai karttademo. Se on TMS-henkinen päivittäisen liikennesuunnittelun cockpit, jonka tarkoitus on auttaa liikennekoordinaattoria suunnittelemaan, jakamaan ja tarkistamaan päivän tripit, jobit, trailerisiirrot, lastaukset, purut, terminaalikäynnit, satamatapahtumat ja huolto-/korjaamonodet käytettävissä olevilla vetäjillä ja autoilla.
+
+FleetFlowin ydinkysymys on:
+
+**Saadaanko päivän suunnitellut tripit, purut, lastaukset, trailerisiirrot, terminaalikäynnit, satamatapahtumat ja muut node-tapahtumat hoidettua käytössä olevilla vetäjillä, vai tarvitaanko lisää vetäjiä / autoja?**
+
+---
+
+## Erittäin tärkeä tietosuoja- ja demodatarajaus
+
+Projektissa käytetään aina vain keksittyä demodataa.
+
+Mitään alkuperäistä työdataa ei saa kopioida FleetFlow Planneriin, GitHubiin, README:hen, dokumentaatioon, demodataan tai käyttöliittymään.
+
+Ei saa kopioida suoraan:
+
+- oikeita asiakasnimiä
+- oikeita yritysnimiä
+- oikeita order-numeroita
+- oikeita trip-numeroita
+- oikeita unit-/trailer-tunnuksia
+- oikeita rekisterinumeroita
+- oikeita kuljettajia
+- oikeita henkilöitä
+- oikeita osoitteita
+- oikeita lastaus- tai purkuaikoja
+- oikeita yhteystietoja
+- oikeita linkkejä
+- oikeita satama-, terminaali-, ferry- tai työjärjestelmän tunnuksia
+- oikeita työjärjestelmän rivejä
+- työnantajan järjestelmäkuvia GitHubissa, README:ssä tai demossa
+- tuotantodataa tai muuta työnantajan dataa
+
+TMS-/EVO-tyylisistä kuvista saa käyttää vain yleisiä ideoita ja rakenteita:
+
+- listanäkymien rakenne
+- trip/order/capacity/details-ikkunat
+- node-/stop-logiikka
+- dispatcher board -tyyppinen työskentelymalli
+- context menu -toimintojen ideat
+- TMS/SAP/EVO-tyylinen tiivis business UI
+- tripin, orderin, trailerin, noden ja jobin välinen yleinen logiikka
+- suunnitteluprosessin työnkulku
+
+Kaikki FleetFlowin esimerkkidata tehdään fiktiiviseksi.
+
+---
+
+## Päivitetty päätavoite
+
+FleetFlow Planner auttaa liikennekoordinaattoria tarkistamaan, onnistuvatko päivän työt käytössä olevilla vetäjillä, autoilla ja trailereilla.
+
+Ohjelman pitää huomioida:
+
+- ajoajat
+- käsittelyajat
+- lastaukset
+- purut
+- trailerin noudot
+- trailerin jätöt
+- vaihtopisteet
+- satama-ajot
+- lautta-/ferry-tapahtumat
+- terminaalikäynnit
+- trailerin sähköön vienti
+- trailerin parkkiin vienti
+- trailerin vaihto toiselle vetäjälle
+- trailerin siirto toiselle kärrylle / uudelleenjärjestely
+- trailerin huolto-/korjaamonodet
+- tauot
+- 4h30 ajon taukoraja
+- 9h päivittäinen ajoaikaraja
+- sijaintien välinen jatkuvuus
+- autokohtaiset job-ketjut
+- vetäjäkohtainen kapasiteetti
+- ADR-vaatimukset
+- GDP-vaatimukset
+- lämpötilavaatimukset
+- trailerityyppi
+- open / risk / not feasible -tilanteet
+- lisävetäjän tai lisäauton tarve
+
+---
+
+## FleetFlowin pääprosessi
+
+Päivitetty pääprosessi:
+
+1. Tripit ovat valmiina tai ne luodaan suunnittelua varten.
+2. Tripille lisätään order / orderit.
+3. Orderien vaatimukset määritellään.
+4. Orderit kiinnitetään trailerille / unitille.
+5. Tripille määritellään stopit / node-tapahtumat.
+6. Tripistä muodostetaan yksi tai useampi jobi.
+7. Jobit jaetaan päivän käytössä oleville vetäjille / autoille.
+8. FleetFlow tarkistaa, onnistuuko suunnitelma.
+9. FleetFlow ilmoittaa riskit ja mahdottomat kohdat.
+10. FleetFlow ehdottaa muutoksia, jobien uudelleenjakoa tai lisävetäjää.
+11. Coordinaattori hyväksyy tai hylkää ehdotuksen.
+
+---
+
+## Keskeiset käsitteet
+
+### Current plan
+
+Coordinaattorin nykyinen suunnitelma.
+
+Sisältää päivän jobit, niille valitut vetäjät/autot/trailerit ja suunnitellut sequence-ketjut.
+
+### Plan check
+
+Tarkistusajo, jossa FleetFlow arvioi nykyisen suunnitelman toteutettavuuden.
+
+UI:ssa voi olla painike:
+
+- Check plan
+- Tarkista
+- Validate plan
+
+### Issues
+
+Ohjelman löytämät ongelmat ja riskit.
+
+Esimerkkejä:
+
+- liian pieni buffer
+- päällekkäiset jobit
+- liian pitkä ajopäivä
+- tauko ei mahdu
+- 4h30 ajon taukoraja ylittyy
+- 9h ajopäiväraja ylittyy
+- sijaintisiirtymä ei ole realistinen
+- ADR-vaatimus ei täyty
+- GDP-vaatimus ei täyty
+- väärä trailerityyppi
+- trailer ei ole käytettävissä huolto-/korjaamonoden takia
+- open job ilman vetäjää
+- additional truck needed
+
+### Suggested plan
+
+FleetFlowin ehdottama uusi ajosuunnitelma.
+
+Esimerkkejä:
+
+- siirrä JOB-003 vetäjältä TR-101 vetäjälle TR-102
+- muuta jobien järjestystä
+- lisää bufferia
+- lisää tauko
+- lisää TR-103 päivän suunnitelmaan
+- jätä trailer Demo Terminaliin ja jatka toisella vetäjällä myöhemmin
+
+### Additional truck needed
+
+FleetFlow toteaa, että nykyiset vetäjät/autot eivät riitä päivän töihin.
+
+Ohjelma ehdottaa lisävetäjän tai lisäauton tarvetta.
+
+### Accept suggestion
+
+Coordinaattori ottaa FleetFlowin ehdotuksen käyttöön.
+
+### Reject suggestion
+
+Coordinaattori hylkää ehdotuksen ja nykyinen suunnitelma säilyy.
+
+---
+
+## Päivitetty käsitemalli
+
+FleetFlowin keskeinen malli on:
+
+**Trip → Orders → Nodes / Stops → Jobs → Assignment → Plan Check**
+
+---
+
+## Order
+
+Order on kuljetustilaus tai tilauksen osa.
+
+Order voi sisältää esimerkiksi:
+
+- order reference
+- customer
+- pickup location
+- delivery location
+- pickup date / time
+- delivery date / time
+- time window
+- exact time / flexible time
+- weight
+- ldm
+- pallets
+- colli
+- goods summary
+- temperature requirement
+- ADR requirement
+- GDP requirement
+- trailer requirement
+- ferry / port reference
+- order status
+- planning status
+- remarks
+- instructions
+
+Order kuuluu tripille.
+
+Yhdellä tripillä voi olla yksi tai monta orderia.
+
+Order voi olla:
+
+- pickup-order
+- delivery-order
+- import-delivery
+- export-pickup
+- terminal handling -tyyppinen työ
+- osapurku
+- lisälastaus
+- trailer transfer -tyyppinen tapahtuma
+
+---
+
+## Trip
+
+Trip on kuljetuskokonaisuus.
+
+Trip voi olla valmiiksi olemassa tai coordinaattori voi luoda sen suunnittelua varten.
+
+Trip voi sisältää:
+
+- yhden orderin
+- useita ordereita
+- yhden asiakkaan orderit
+- usean asiakkaan orderit
+- yhden pickupin
+- useita pickupeja
+- yhden deliveryn
+- useita deliveryitä
+- import-trailerin purun
+- export-lastausketjun
+- satamatapahtuman
+- lauttatapahtuman
+- terminaalikäynnin
+- trailerin jättämisen sähköön
+- trailerin jättämisen parkkiin
+- trailerin vaihdon
+- trailerin siirron toiselle kärrylle
+- trailerin uudelleenjärjestelyn
+- huolto-/korjaamonoden
+- katsastuksen
+- VAK-/ADR-teknisen korjauksen
+- kylmäkonehuollon
+
+Trip ei välttämättä ole yhden vetäjän alusta loppuun ajama työ.
+
+Tärkeä periaate:
+
+**Trip on kuljetuskokonaisuus. Job on yhdelle vetäjälle / autolle annettava toteutettava työosuus.**
+
+---
+
+## Node / Stop / Event
+
+Tripille määritellään node-tapahtumat.
+
+Node tarkoittaa fyysistä tai suunnittelullista tapahtumaa tripin ketjussa.
+
+Node voi olla esimerkiksi:
+
+- pickup
+- loading
+- delivery
+- unloading
+- port pickup
+- port drop
+- ferry departure
+- ferry arrival
+- terminal drop
+- terminal pickup
+- trailer parked
+- trailer plugged to electricity
+- trailer exchange
+- trailer shift to another unit
+- partial unload at demo terminal
+- additional loading at demo terminal
+- trailer ready for next driver
+- workshop visit
+- cold unit service
+- body repair
+- inspection
+- ADR / VAK technical repair
+- trailer cleaning
+- fuel check
+- support bar check
+- load securing equipment check
+
+Node-tapahtumat eivät ole vain muistiinpanoja, vaan ne vaikuttavat suunnitteluun.
+
+Node voi vaikuttaa:
+
+- aikatauluun
+- sijaintiin
+- trailerin käytettävyyteen
+- vetäjän päivän sequenceen
+- jobin alkuun
+- jobin päättymiseen
+- seuraavan vetäjän mahdollisuuteen jatkaa
+- plan check -tulokseen
+
+---
+
+## Job
+
+Job on yhdelle vetäjälle / autolle annettava työosuus.
+
+Yhdestä tripistä voi muodostua:
+
+- yksi job
+- kaksi jobia
+- useita jobeja
+
+Job voi sisältää:
+
+- yhden noden
+- useita nodeja
+- yhden pickupin
+- useita pickupeja
+- yhden deliveryn
+- useita deliveryitä
+- port pickupin
+- port dropin
+- trailerin viennin terminaaliin
+- trailerin haun terminaalista
+- trailerin viennin sähköön
+- trailerin jättämisen parkkiin
+- trailerin siirron korjaamolle
+- trailerin noudon korjaamolta
+- osan tripistä, jonka toinen vetäjä jatkaa myöhemmin
+
+Tärkeä periaate:
+
+**Trip voi jatkua, vaikka yksittäisen vetäjän job päättyy.**
+
+---
+
+## Esimerkki: Import-trip
+
+Import-trip voi tulla mantereelta Suomeen lautalla eri satamiin.
+
+Työnkulku voi olla:
+
+1. Trailer saapuu satamaan.
+2. Vetäjä hakee trailerin satamasta.
+3. Vetäjä kytkee tarvittaessa lämmöt päälle.
+4. Trailer viedään asiakkaalle purkuun tai Demo Terminaliin.
+5. Trailer voidaan jättää:
+   - asiakkaalle
+   - Demo Terminaliin
+   - sähköön
+   - parkkiin
+   - toiselle vetäjälle jatkoon
+6. Vetäjän job päättyy määriteltyyn nodeen.
+7. Toinen vetäjä voi jatkaa myöhemmin samalla trailerilla.
+
+Esimerkkimalli:
+
+    Trip: Import trailer from port to customer area
+
+    Job 1:
+    Port pickup → Demo Terminal
+    Driver ends job at Demo Terminal
+
+    Job 2:
+    Demo Terminal → Customer delivery → Empty trailer back to terminal
+    Second driver continues later
+
+---
+
+## Esimerkki: Export-trip / kotimaan lastaus
+
+Kotimaassa voidaan luoda trip suunnittelua varten.
+
+Tripillä voi olla:
+
+- yksi order / yksi asiakas
+- monta orderia / yksi asiakas
+- monta orderia / monta asiakasta
+- yksi lastauspaikka
+- useita lastauspaikkoja
+- yksi purkupaikka
+- useita purkupaikkoja
+- osapurku Demo Terminaliin
+- lisälastaus Demo Terminalista
+- trailerin uudelleenjärjestely
+- trailerin shift to another trailer / unit
+- vienti satamaan päivän lauttaan
+
+Esimerkkimalli:
+
+    Trip: Domestic export loading
+
+    Job 1:
+    Demo Terminal → Customer pickup → Port drop
+
+    Job 2:
+    Port → Trailer pickup → Workshop / Terminal
+
+Toinen esimerkki:
+
+    Trip: Multi-order domestic/export trip
+
+    Node 1:
+    Pickup customer A
+
+    Node 2:
+    Pickup customer B
+
+    Node 3:
+    Partial unload at Demo Terminal
+
+    Node 4:
+    Additional loading at Demo Terminal
+
+    Node 5:
+    Port drop for ferry departure
+
+---
+
+## Tripin luonti / suunnittelun työnkulku
+
+Tripin luonnissa huomioidaan:
+
+1. Trip on valmiina tai se luodaan suunnittelua varten.
+2. Coordinaattori lisää orderin / orderit tripille.
+3. Order kiinnitetään trailerille / unitille.
+4. Orderin vaatimukset määritellään:
+   - ADR
+   - GDP
+   - temperature
+   - weight
+   - ldm
+   - pallets / colli
+   - delivery / pickup constraints
+5. Tripille lisätään stopit / node-tapahtumat.
+6. Jos trip menee ulos Suomesta, lisätään lautta-/ferry-node.
+7. Jos trip tulee Suomeen, lisätään port arrival / port pickup -node.
+8. Määritellään, mihin vetäjän job päättyy:
+   - asiakkaalle
+   - satamaan
+   - Demo Terminaliin
+   - trailer parkkiin
+   - sähköpaikalle
+   - korjaamolle
+   - seuraavalle vetäjälle jatkoon
+9. Tripistä muodostetaan yksi tai useampi job.
+10. Jobille valitaan vetäjä / truck / trailer / carrier -combination.
+11. Tarkistetaan vetäjän ja carrierin kelpoisuudet:
+   - ADR
+   - GDP
+   - mahdolliset muut vaatimukset
+12. Hyväksytään suunnitelma tai korjataan sitä.
+13. FleetFlow tarkistaa koko päivän planin Fleet-näkymässä.
+
+---
+
+## ADR / GDP / lämpötilavaatimukset
+
+Orderin ja tripin vaatimukset pitää huomioida suunnittelussa.
+
+Orderilla / tripillä voi olla:
+
+- ADR requirement
+- GDP requirement
+- temperature requirement
+- thermo trailer requirement
+
+Assignment-vaiheessa FleetFlow tarkistaa:
+
+- onko vetäjällä ADR-lupa
+- onko vetäjä / carrier GDP-kelpoinen
+- sopiiko trailerityyppi lämpötilavaatimukseen
+- onko valittu truck/trailer/driver/carrier-combination sallittu kyseiselle jobille
+
+Tämän hetkinen periaate:
+
+- Kaikki demo-vetäjät osaavat ajaa lämpösäädeltyjä kuljetuksia.
+- Thermo tarkistetaan ensisijaisesti trailerityyppiä vasten.
+- ADR ja GDP tarkistetaan carrier/truck/driver-combinationia vasten.
+
+Jos ADR- tai GDP-vaatimus ei täyty, FleetFlow ei saa hyväksyä suunnitelmaa sellaisenaan.
+
+Tulos voi olla esimerkiksi:
+
+- OK
+- Risk
+- Not feasible
+- Missing ADR qualification
+- Missing GDP qualification
+- Wrong trailer type
+- Additional qualified driver needed
+
+---
+
+## Trailerin huolto- ja korjaamotapahtumat nodeina
+
+Trailerin huollot ja korjaamot käsitellään tripin omina node-tapahtumina.
+
+Esimerkkejä:
+
+- VTA / kylmäkonehuolto
+- Boxfix
+- kaapin / runkoseinien korjaus
+- katsastus
+- VAK / ADR-tekninen korjaus
+- trailer inspection
+- trailer cleaning
+- fuel check
+- support bars / load securing equipment check
+
+Nämä vaikuttavat suunnitteluun, koska trailer ei ole normaalisti käytettävissä huolto-/korjaamonoden aikana.
+
+FleetFlowin pitää myöhemmin pystyä näyttämään, jos:
+
+- trailer on huollossa
+- trailer ei ehdi seuraavaan jobiin
+- trailer pitää hakea korjaamolta ennen seuraavaa tehtävää
+- trailerin tekninen tila vaikuttaa ADR/GDP/thermo-käyttöön
+- trailerin käyttö vaatii tarkistuksen ennen lähtöä
+
+---
+
+## Kuljetusyhtiöille annettavien ohjeiden vaikutus FleetFlowiin
+
+Käyttäjän antamat ohjeistusesimerkit osoittavat, että yhdelle autolle / vetäjälle annettava päivän ohjelma voi sisältää monta peräkkäistä tehtävää.
+
+Esimerkkityyppisiä tehtäviä:
+
+- hae trailer satamasta
+- kytke lämmöt päälle
+- tarkista löpötilanne
+- tarkista tukitangot
+- aja asiakkaalle purkuun
+- palauta tyhjä trailer terminaaliin
+- hae toinen trailer
+- vie trailer sähköön
+- hae kolmas trailer
+- aja purkuun
+- aja lastaukseen
+- vie lastattu trailer satamaan
+- ilmoita ETA
+- odota jatko-ohje
+- jatka seuraavana päivänä uuteen lastaukseen
+
+Tästä seuraa FleetFlowin kannalta tärkeä vaatimus:
+
+**FleetFlowin pitää pystyä muodostamaan vetäjäkohtainen päivän sequence useista jobeista, nodeista ja tripeistä.**
+
+Instructions-näkymän pitää myöhemmin pystyä koostamaan valitusta suunnitelmasta selkeä kuljetusyhtiölle / vetäjälle annettava ajettava ohjelma.
+
+Instructions-sisältö voi perustua:
+
+- tripin tietoihin
+- order-listaan
+- node-listaan
+- lämpötilavaatimuksiin
+- ADR/GDP-vaatimuksiin
+- trailerin tietoihin
+- pickup-/delivery-paikkoihin
+- ferry-/port-nodeihin
+- terminaali-/parkki-/sähkö-nodeihin
+- seuraavaan toimenpiteeseen
+- status update -muistutukseen
+- ETA-pyyntöön
+- lastinsidonta- tai käsittelyhuomioihin
+
+Demossa ei käytetä oikeita linkkejä tai oikeaa työdataa.
+
+---
+
+## TMS-kuvista saadut UI- ja toimintamalli-ideat
+
+Kuvista voidaan poimia yleisiä UI- ja työnkulkuideoita.
+
+### Trip List ja Order List
+
+FleetFlowiin voidaan myöhemmin rakentaa erilliset mutta linkittyvät näkymät:
+
+- Trip List
+- Orders on Trip
+- Capacity / Details
+- Node / Stop list
+- Map
+- Planning status
+- Dispatcher board
+
+Trip-listalta valitaan trip, jonka orderit ja node-tapahtumat näkyvät oikealla, alapuolella tai Job-välilehden sisäisessä näkymässä.
+
+### Capacity Details / Order Details / Trip Details
+
+Trip- tai order-details-näkymässä voidaan näyttää:
+
+- trip reference
+- order reference
+- customer
+- carrier
+- truck
+- trailer / unit
+- pickup location
+- delivery location
+- pickup time
+- delivery time
+- time window
+- weight
+- ldm
+- pallets / colli
+- temperature
+- ADR / GDP
+- planning status
+- order status
+- ferry / port
+- remarks
+- instructions
+
+### Context menu -toiminnot
+
+TMS-kuvien context menu -rakenteista voidaan ottaa yleisiä toimintoideoita.
+
+Mahdollisia tulevia toimintoja:
+
+- Trip details
+- Capacity Details
+- Order Details
+- Map
+- Calculate actual distance
+- Route schedule
+- Arrange Trip Sequence
+- Start Correction
+- Close round-trip
+- Move to Dispatcher Board
+- Create Ferry Report
+- Send Instructions
+- Change Planning Status
+- Toggle ferry booked
+- Update order status
+- Create report
+- Create credit note
+
+Näitä ei tarvitse toteuttaa heti.
+
+Ne kirjataan tuleviksi ideoiksi.
+
+---
+
+## Päävälilehtirakenne
+
+FleetFlow Plannerin päävälilehdet:
+
+- Board
+- Job
+- Fleet
+- Route & Risk
+
+### Board
+
+Board on päivän yleisnäkymä.
+
+Board vastaa kysymykseen:
+
+**Mikä on päivän tilanne juuri nyt?**
+
+Board näyttää:
+
+- Daily Capacity
+- Day Status
+- Workload
+- Fleet Status
+- Next Attention
+- Daily Traffic Plan
+- Fleet Preview
+- Selected Job quick summary
+- Operational Notes
+
+Boardiin ei lisätä raskasta trip/order-editointia.
+
+Board on nopea operatiivinen cockpit.
+
+### Job
+
+Job on valitun jobin tarkempi työtila.
+
+Job vastaa kysymykseen:
+
+**Mitä valitulle jobille pitää tehdä, mihin tripiin se kuuluu, mitä ordereita se sisältää, mitkä nodet siihen kuuluvat ja onko se ajettavissa valitulla vetäjällä / autolla?**
+
+Job-välilehdellä voidaan näyttää:
+
+- selected job selector
+- job overview
+- trip summary
+- orders on trip
+- stops / nodes
+- assignment
+- instructions
+- validation
+- planning log
+
+Job ei saa olla vain yksi pitkä lomake.
+
+Jobin sisälle rakennetaan omat sisäiset välilehdet.
+
+### Fleet
+
+Fleet on päivän kapasiteetin ja plan checkin ydinnäkymä.
+
+Fleet vastaa kysymykseen:
+
+**Onnistuuko coordinaattorin tekemä päivän suunnitelma käytössä olevilla vetäjillä?**
+
+Fleet näyttää:
+
+- vetäjäkohtaiset job-sequencet
+- truck sequences
+- päivän trip/job-ketjut
+- open jobs
+- risk jobs
+- not feasible -tilanteet
+- plan check -tulokset
+- suggested plan
+- additional truck needed
+- accept / reject suggestion
+
+Fleet ei ole orderien editointipaikka.
+
+Fleet on kapasiteetin ja toteutettavuuden tarkistusnäkymä.
+
+### Route & Risk
+
+Route & Risk näyttää valitun jobin / tripin reitin ja riskit.
+
+Route & Risk voi myöhemmin näyttää:
+
+- route map
+- node sequence
+- route continuity
+- driving time
+- buffer
+- break warning
+- port / ferry notes
+- terminal / workshop nodes
+- route risk log
+- selected job route summary
+
+Route & Risk ei ole Fleet-tason plan check -näkymä.
+
+---
+
+## Job-välilehden uusi tavoiterakenne
+
+Job-välilehteä ei kannata pitää yhtenä pitkänä Job Input / Edit -lomakkeena.
+
+Parempi rakenne on ammattimainen TMS-tyylinen työtila, jossa on sisäiset välilehdet.
+
+Ehdotettu rakenne:
+
+    Job workspace
+    ├── Selected Job / Job selector
+    ├── Internal tabs
+    │   ├── Overview
+    │   ├── Trip & Orders
+    │   ├── Stops / Nodes
+    │   ├── Assignment
+    │   ├── Instructions
+    │   └── Validation
+    └── Job Planning Log / Validation Log
+
+### Overview
+
+Näyttää valitun jobin tiiviin yhteenvedon:
+
+- job id
+- trip id
+- customer
+- route
+- time window
+- truck
+- trailer
+- status
+- handling
+- next step
+
+### Trip & Orders
+
+Näyttää tripin ja siihen kuuluvat orderit:
+
+- trip id
+- trip type
+- order list
+- customer
+- pickup / delivery
+- goods summary
+- ldm
+- kg
+- pallets / colli
+- temperature
+- ADR / GDP badges
+- order status
+- planning status
+
+### Stops / Nodes
+
+Näyttää tripin fyysiset tapahtumat järjestyksessä:
+
+- port arrival
+- port pickup
+- pickup
+- loading
+- delivery
+- unloading
+- terminal drop
+- terminal pickup
+- ferry departure
+- ferry arrival
+- workshop
+- inspection
+- electricity / parking
+- trailer exchange
+- continuation by another driver
+
+### Assignment
+
+Näyttää vetäjä / truck / trailer -valinnan:
+
+- carrier
+- truck
+- trailer
+- driver
+- ADR capability
+- GDP capability
+- trailer type
+- assignment status
+- capability check
+- possible warning / not feasible result
+
+### Instructions
+
+Muodostaa kuljetusyhtiölle / vetäjälle selkeän ajo-ohjeen.
+
+Instructions voi sisältää:
+
+- mitä haetaan
+- mistä haetaan
+- minne viedään
+- missä järjestyksessä
+- lämpötila
+- ADR/GDP-huomio
+- sidontaohjeet
+- trailerin tarkistus
+- portti-/lauttaohjeet
+- terminaaliohjeet
+- ETA-pyyntö
+- status update reminder
+- jatko-ohje
+
+Demossa kaikki Instructions-data on fiktiivistä.
+
+### Validation
+
+Näyttää jobin / tripin tarkistuksen:
+
+- onnistuuko tällä vetäjällä
+- ajoaika
+- taukotarve
+- buffer
+- ADR check
+- GDP check
+- trailer type check
+- location continuity
+- riskit
+- ehdotukset
+- not feasible -syy
+
+---
+
+## Job Input / Edit -roolin tarkennus
+
+Nykyinen Job Input / Edit ei ole paras päänäkymä Job-välilehdelle.
+
+Se voidaan siirtää:
+
+- omaksi sisäiseksi välilehdeksi
+- Assignment/Input-tabin alle
+- myöhemmin erilliseksi Add/Edit Job -modaliksi
+- myöhemmin Trip Builder / Add Trip -toiminnoksi
+
+Tärkeä periaate:
+
+**Job-välilehden päänäkymä ei saa olla pelkkä lomake, vaan valitun jobin operatiivinen työtila.**
+
+---
+
+## Fleet-välilehden tarkennettu rooli
+
+Fleet-välilehti on plan validation -ydinnäkymä.
+
+Fleet näyttää vetäjäkohtaiset päivän sequence-ketjut.
+
+Esimerkki:
+
+    TR-101
+    06:30-09:00  JOB-001  Kotka -> Hanko Port       Loading - 45 min      OK
+    09:45-12:15  JOB-002  Hanko Port -> Demo BP     Port pickup - 25 min  OK
+    13:15-14:15  JOB-003  Demo BP -> Vuosaari       Exchange - 25 min     Break required
+    15:00-16:00  JOB-004  Vuosaari -> Sipoo DC      Port pickup - 25 min  OK
+    16:30-17:15  JOB-005  Sipoo DC -> Demo BP       Empty return - 20 min OK
+
+    TR-102
+    06:45-08:45  JOB-006  Lahti -> Vuosaari         Loading - 45 min      OK
+    09:30-10:15  JOB-007  Vuosaari -> Demo BP       Port pickup - 25 min  OK
+    11:15-12:00  JOB-008  Demo BP -> Vuosaari       Exchange - 25 min     OK
+    13:00-14:00  JOB-009  Vuosaari -> Hakkila DC    Port pickup - 25 min  OK
+    14:30-15:15  JOB-010  Hakkila DC -> Demo BP     Empty return - 20 min Open
+
+Fleetissä pitää näkyä:
+
+- Fleet Timeline
+- truck sequences
+- truck-kohtaiset job-ketjut
+- jobit aikajärjestyksessä
+- handling
+- status
+- Check Plan
+- Fleet Event Log
+- issues / warnings
+- Suggested Plan
+- Suggested recovery plan
+- Plan Check Result
+- Accept suggestion
+- Reject suggestion
+- Additional Truck Needed
+
+Fleet ei näytä kaikkia order-details-tietoja, vaan keskittyy kapasiteettiin ja plan checkiin.
+
+---
+
+## Board-välilehden nykyinen tavoiterakenne
+
+Board on päivittäisen tilanteen yleisnäkymä.
+
+Boardin rakenne:
+
+```text
+Board
+├── Left Control Column
+│   ├── Daily Capacity
+│   └── Board Detail Panel
+│       ├── Selected Job
+│       └── Operational Notes
+│
+├── Center Status Column
+│   ├── Day Status
+│   ├── Workload
+│   ├── Fleet Status
+│   └── Next Attention
+│
+└── Right Operations Column
+    ├── Daily Traffic Plan
+    └── Fleet Preview
+```
+
+---
+
+Boardissa säilytetään kevyt, nopea cockpit-ajatus.
+
+Board ei ole:
+
+- täysi order management
+- trip builder
+- raskas editointinäkymä
+- Fleet-tason plan check -näkymä
+- Route & Risk -analyysinäkymä
+
+Board näyttää nopeasti päivän tilanteen.
+
+---
+
+## Route & Risk -välilehden tavoite
+
+Route & Risk näyttää valitun jobin tai tripin reitti- ja riskikontekstin.
+
+Sisältö voi myöhemmin olla:
+
+- Route Map
+- Route Summary
+- Route Risk Summary
+- Route Risk Log
+- node sequence
+- origin/destination markerit
+- route polyline
+- driving time warning
+- break warning
+- buffer warning
+- ferry / port notes
+- terminal / workshop nodes
+- continuity placeholder
+
+Route & Risk ei sisällä:
+
+- Fleet-tason Check Plania
+- Suggested Plania
+- Accept / Reject -toimintoja
+- Additional Truck Needed -päätöstä
+- täyttä Job Details/Edit -lomaketta
+
+---
+
+## README-tavoitelause myöhemmäksi
+
+FleetFlow Planner is a TMS-inspired daily traffic planning cockpit that evaluates whether the available trucks can complete the daily job plan considering driving time, handling time, trailer pickup/drop operations, breaks, locations, ferry and terminal events, order requirements and truck-specific sequences. If the current plan is not feasible, it explains the issues and suggests a better plan or additional truck capacity.
+
+---
+
+## Kehityksen toimintamalli
+
+FleetFlow Plannerin kehitysmalli on seuraava:
+
+1. Käyttäjä ja ChatGPT suunnittelevat rakenteen, logiikan ja UI:n yhdessä.
+2. ChatGPT toimii suunnittelijana, arkkitehtina ja Codex-promptien tuottajana.
+3. Codex tekee varsinaiset koodimuutokset.
+4. ChatGPT antaa käyttäjälle suoraan kopioitavan Codex-promptin.
+5. Käyttäjä ajaa promptin Codexissa.
+6. Muutokset tehdään pienissä, turvallisissa vaiheissa.
+7. Jokainen koodimuutos ohjeistetaan selkeillä ankkureilla.
+8. Ei korvata koko sovellusta, ellei se ole välttämätöntä.
+9. Jokaisen vaiheen jälkeen ajetaan:
+   - npm run lint
+   - npm run build
+
+Koodiohjeiden muoto:
+
+    ETSI TÄMÄ KOHTA
+    LISÄÄ TÄMÄ TÄMÄN JÄLKEEN / ENNEN
+    KOPIOI TÄMÄ KOODI
+
+Aina annetaan pieni edeltävä koodinpätkä tai ankkuri, jotta muutoskohta löytyy varmasti.
+
+---
+
+## Seuraava suositeltu kehitysvaihe
+
+Seuraava järkevä vaihe on Job-välilehden uudelleenrakennus ammattimaiseksi sisäisten välilehtien avulla.
+
+Ehdotettu vaihe:
+
+**Step 8.1 — Job Workspace Internal Tabs**
+
+Tavoite:
+
+- muuttaa Job-välilehti yhdestä pitkästä lomakkeesta ammattimaiseksi TMS-työtilaksi
+- erottaa input, trip/order-sisältö, nodes, assignment, instructions ja validation
+- valmistella Trip → Orders → Nodes → Jobs -malli
+- säilyttää nykyinen selectedJobId-synkka
+- säilyttää nykyiset toimivat laskennat ja state-logiikat
+- ei lisätä backendia
+- ei lisätä oikeaa työdataa
+- ei rikota Board-, Fleet- tai Route & Risk -näkymiä
+
+Ensimmäisen vaiheen sisäinen tab-rakenne:
+
+    Job
+    ├── Overview
+    ├── Trip & Orders
+    ├── Stops / Nodes
+    ├── Assignment
+    ├── Instructions
+    └── Validation
+
+Step 8.1 rajaukset:
+
+- ei muuteta Fleetin plan check -logiikkaa
+- ei muuteta Boardin 3-column cockpit -rakennetta
+- ei muuteta Route & Risk -näkymää
+- ei lisätä backendia
+- ei lisätä localStoragea
+- ei lisätä oikeaa työdataa
+- käytetään vain keksittyä demodataa
+- nykyinen Job Input / Edit voidaan siirtää sisäiseen tabiin tai korvata kevyellä Job Details / Edit -sisällöllä
+- Instructions-tab voi aluksi olla demo-ohjeen preview, ei vielä automaattinen tuotantoviesti
+- Validation-tab voi aluksi näyttää nykyiset ajoaika-, tauko-, ADR/GDP- ja trailer-check -placeholderit
+
+---
+
+## Tiivistetty projektin suunta
+
+FleetFlow Plannerin ydin on:
+
+**Trip → Orders → Nodes → Jobs → Assignment → Plan Check**
+
+FleetFlow ei ensimmäisessä vaiheessa ole:
+
+- täysi TMS
+- order management -järjestelmä
+- carrier master-data -järjestelmä
+- tarjouslaskuri
+- tuotantokäyttöinen dispatch-järjestelmä
+- oikeaa työdataa käyttävä järjestelmä
+
+FleetFlow on portfolioon sopiva TMS-henkinen suunnittelu- ja plan validation -työkalu, joka näyttää logistiikan toimialaosaamista, React-osaamista, UI-ajattelua ja kykyä mallintaa oikean liikennesuunnittelun työnkulkuja fiktiivisellä demodatalla.
+
+---
+
+---
+
+## Step 8.1A — Job Workspace Internal Tabs
+
+Job-välilehti muutettiin pitkästä Job Input / Edit -tyyppisestä näkymästä ammattimaiseksi TMS-tyyliseksi Job Workspace -näkymäksi.
+
+Uusi Job Workspace -rakenne:
+
+- Job workspace header
+- Selected job -dropdown
+- sisäiset välilehdet:
+  - Overview
+  - Trip & Orders
+  - Stops / Nodes
+  - Assignment
+  - Instructions
+  - Validation
+- oikean reunan Job Planning Log
+
+Tavoite:
+
+- tehdä Job-välilehdestä operatiivinen työtila
+- erottaa jobin yhteenveto, trip/order-sisältö, nodet, assignment, instructions ja validation omiin näkymiin
+- valmistella Trip → Orders → Nodes → Jobs → Assignment → Plan Check -mallia
+- säilyttää nykyinen selectedJobId-synkka
+- säilyttää nykyiset Board-, Fleet- ja Route & Risk -näkymät ennallaan
+
+Toteutus:
+
+- lisättiin uusi `jobWorkspaceTab`-state
+- lisättiin `jobWorkspaceTabs`-määrittely
+- lisättiin kevyet fiktiiviset demo-helperit:
+  - `getDemoTripDetailsForJob`
+  - `getDemoOrdersForJob`
+  - `getDemoNodesForJob`
+  - `getDemoAssignmentCheckForJob`
+- Job-välilehdelle lisättiin oma selected job -dropdown
+- dropdown käyttää nykyistä `selectedJobId`-logiikkaa
+- jobin vaihto synkkaa planner staten nykyisen `syncPlannerStateFromJob`-helperin kautta
+- Assignment-tab säilyttää Open-jobin assign truck -toiminnon
+- Instructions-tab näyttää demo-preview’n kuljetusyhtiölle/vetäjälle annettavasta ohjeesta
+- Validation-tab näyttää ensimmäisen version job-kohtaisista tarkistuksista ja placeholderit myöhemmälle validoinnille
+
+Step 8.1A:ssa ei tehty:
+
+- ei muutettu Boardin 3-column cockpit -rakennetta
+- ei muutettu Fleetin truck sequence- tai plan check -rakennetta
+- ei muutettu Route & Risk -näkymää
+- ei lisätty backendia
+- ei lisätty localStoragea
+- ei tehty täyttä Trip Builderia
+- ei lisätty oikeaa työdataa
+- ei refaktoroitu koko sovellusta
+
+Kaikki uudet trip/order/node/assignment-sisällöt ovat fiktiivistä demodataa.
+
+---
+
+## Step 8.1A.1 — Job Workspace Tab UI Polish
+
+Job Workspace -välilehtien ulkoasua korjattiin.
+
+Korjattu ongelma:
+
+- sisäiset tabit näkyivät aluksi pystyrivinä / liian korkeina
+- hover muuttui liian tummaksi / mustaksi
+
+Korjaus:
+
+- Job Workspace -tabit muutettiin vaakariviksi
+- hover-tila korjattiin vaaleaksi / accent-henkiseksi
+- active-tab näkyy sinisenä
+- tabit eivät enää veny koko leveydelle yksittäisiksi riveiksi
+- tabit saavat wrapata pienellä leveydellä
+
+---
+
+---
+
+---
+
+## Step 8.1A.2 — Align Job Workspace Tabs with Board Detail Panel
+
+Job Workspace -sisäiset tabit viimeisteltiin vastaamaan Board Detail Panelin Selected Job / Operational Notes -valitsimien tyyliä.
+
+Tavoite:
+
+- yhtenäinen SAP/TMS-henkinen valitsintyyli
+- vaalea tausta
+- ohut reunaviiva
+- matala ja tiivis korkeus
+- pyöristetyt kulmat
+- sininen active-tab
+- hover ei muutu mustaksi
+
+Tulos:
+
+- Job-välilehden sisäiset tabit ovat visuaalisesti yhtenäisemmät Board Detail Panelin kanssa
+- Job Workspace näyttää rauhallisemmalta ja ammattimaisemmalta
+- Board, Fleet ja Route & Risk säilyivät ennallaan
+
+Muokatut tiedostot:
+
+- `src/App.css`
+
+Verifiointi:
+
+```text
+npm run lint passed
+npm run build passed
+```
+
+---
+

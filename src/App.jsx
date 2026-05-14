@@ -463,6 +463,7 @@ export default function App() {
   const [actionFeedbackType, setActionFeedbackType] = useState("info");
   const [detailsTab, setDetailsTab] = useState("driving");
   const [workspaceTab, setWorkspaceTab] = useState("board");
+  const [jobWorkspaceTab, setJobWorkspaceTab] = useState("overview");
   const [boardDetailTab, setBoardDetailTab] = useState("selectedJob");
   const [planCheckResults, setPlanCheckResults] = useState(null);
 
@@ -570,96 +571,6 @@ export default function App() {
     setPlanCheckResults(null);
     setActionFeedback("Demo plan reset to initial state.");
     setActionFeedbackType("info");
-  };
-
-  const handleUpdateSelectedJob = (field, value) => {
-    if (!selectedJob) return;
-
-    const updatedJobs = dailyJobs.map((job) => {
-      if (job.id !== selectedJob.id) return job;
-
-      const updatedJob = {
-        ...job,
-        [field]: value,
-      };
-
-      if (field === "loadingTimeExact") {
-        updatedJob.loadingTime = value || job.loadingTime;
-        updatedJob.loadingTimeRange = value ? "" : job.loadingTimeRange;
-        updatedJob.flexibleStart = value ? "" : job.flexibleStart;
-        updatedJob.flexibleEnd = value ? "" : job.flexibleEnd;
-      }
-
-      if (field === "loadingTimeRange") {
-        updatedJob.loadingTimeRange = value;
-        updatedJob.loadingTimeExact = value ? "" : job.loadingTimeExact;
-        updatedJob.loadingTime = getRangeStart(value) || job.loadingTime;
-        updatedJob.flexibleStart = getRangeStart(value);
-        updatedJob.flexibleEnd = getRangeEnd(value);
-      }
-
-      if (field === "deliveryTimeExact") {
-        updatedJob.deliveryTime = value || job.deliveryTime;
-        updatedJob.deliveryTimeRange = value ? "" : job.deliveryTimeRange;
-      }
-
-      if (field === "deliveryTimeRange") {
-        updatedJob.deliveryTimeRange = value;
-        updatedJob.deliveryTimeExact = value ? "" : job.deliveryTimeExact;
-        updatedJob.deliveryTime = getRangeEnd(value) || job.deliveryTime;
-      }
-
-      if (field === "truck") {
-        updatedJob.status = value === "Unassigned" ? "Open" : "OK";
-      }
-
-      return updatedJob;
-    });
-    const chainedJobs =
-      field === "originCity" ? updatedJobs : chainTruckJobOrigins(updatedJobs);
-    const updatedSelectedJob =
-      chainedJobs.find((job) => job.id === selectedJob.id) || selectedJob;
-
-    setDailyJobs(chainedJobs);
-    syncPlannerStateFromJob(updatedSelectedJob);
-    setPlanCheckResults(null);
-    setActionFeedback(`Job ${updatedSelectedJob.id} updated.`);
-    setActionFeedbackType("info");
-  };
-
-  const handleAddChainedDemoJob = () => {
-    const nextJobNumber = dailyJobs.length + 1;
-    const newJob = {
-      id: `JOB-${String(nextJobNumber).padStart(3, "0")}`,
-      flow: "Transfer",
-      type: "Trailer move",
-      customer: "Demo Logistics",
-      originCity: selectedJob.destinationCity,
-      destinationCity: "Demo Terminal BP",
-      loadingTime: "18:00",
-      deliveryTime: "19:00",
-      loadingTimeExact: "18:00",
-      loadingTimeRange: "",
-      deliveryTimeExact: "19:00",
-      deliveryTimeRange: "",
-      flexibleStart: "",
-      flexibleEnd: "",
-      truck: "Unassigned",
-      trailerType: selectedJob.trailerType || "Thermo trailer",
-      handlingType: "Trailer exchange",
-      handlingDurationMinutes: 25,
-      nextStep: "Demo Terminal",
-      driverHoursToday: 0,
-      status: "Open",
-    };
-    const chainedJobs = chainTruckJobOrigins([...dailyJobs, newJob]);
-
-    setDailyJobs(chainedJobs);
-    setSelectedJobId(newJob.id);
-    syncPlannerStateFromJob(newJob);
-    setPlanCheckResults(null);
-    setActionFeedback(`New demo job ${newJob.id} added.`);
-    setActionFeedbackType("success");
   };
 
   const handleCheckPlan = () => {
@@ -987,6 +898,163 @@ export default function App() {
     { id: "route-risk", label: "Route & Risk" },
   ];
 
+  const jobWorkspaceTabs = [
+    { id: "overview", label: "Overview" },
+    { id: "tripOrders", label: "Trip & Orders" },
+    { id: "stopsNodes", label: "Stops / Nodes" },
+    { id: "assignment", label: "Assignment" },
+    { id: "instructions", label: "Instructions" },
+    { id: "validation", label: "Validation" },
+  ];
+
+  const getDemoTripDetailsForJob = (job) => {
+    if (!job) {
+      return {
+        tripId: "TRIP-DEMO-TBD",
+        tripType: "Planning demo",
+        planningStatus: "Not selected",
+        orderCount: 0,
+        stopsCount: 0,
+      };
+    }
+
+    return {
+      tripId: `TRIP-${job.id?.replace(/\D/g, "").slice(-3) || "001"}`,
+      tripType:
+        job.flow === "Import" ? "Import trailer flow" : "Domestic / export planning flow",
+      planningStatus: job.status === "Open" ? "Needs assignment" : "Planned",
+      orderCount: job.status === "Open" ? 1 : 2,
+      stopsCount: job.status === "Open" ? 3 : 4,
+    };
+  };
+
+  const getDemoOrdersForJob = (job) => {
+    if (!job) return [];
+
+    const baseCustomer = job.customer || "Demo Customer";
+    const origin = job.originCity || "Demo Origin";
+    const destination = job.destinationCity || "Demo Destination";
+
+    return [
+      {
+        id: "ORD-DEMO-001",
+        customer: baseCustomer,
+        pickup: origin,
+        delivery: destination,
+        goods: "Demo palletized goods",
+        ldm: "6.4",
+        kg: "7 850",
+        pallets: "18",
+        colli: "24",
+        temperature: job.trailerType?.toLowerCase().includes("thermo")
+          ? "+2...+6 °C"
+          : "Ambient",
+        adr: job.id?.endsWith("003") || false,
+        gdp: job.id?.endsWith("006") || false,
+        orderStatus: job.status === "Open" ? "Waiting assignment" : "Ready for planning",
+        planningStatus: job.status === "Risk" ? "Review needed" : "Planned",
+      },
+      {
+        id: "ORD-DEMO-002",
+        customer: "Nordic Demo Components",
+        pickup: origin,
+        delivery: destination,
+        goods: "Demo mixed cargo",
+        ldm: "3.2",
+        kg: "2 400",
+        pallets: "8",
+        colli: "11",
+        temperature: "Ambient",
+        adr: false,
+        gdp: false,
+        orderStatus: "Confirmed",
+        planningStatus: "Planned",
+      },
+    ];
+  };
+
+  const getDemoNodesForJob = (job) => {
+    if (!job) return [];
+
+    const origin = job.originCity || "Demo Origin";
+    const destination = job.destinationCity || "Demo Destination";
+    const loadingTime = job.loadingTime || "Time TBD";
+    const deliveryTime = job.deliveryTime || "Time TBD";
+
+    return [
+      {
+        id: "NODE-01",
+        type: job.flow === "Import" ? "Port pickup" : "Trailer pickup",
+        location: origin,
+        time: loadingTime,
+        note: "Check trailer condition, documents and temperature setting.",
+      },
+      {
+        id: "NODE-02",
+        type: job.handlingType || "Handling",
+        location: origin,
+        time: loadingTime,
+        note: `${job.handlingType || "Handling"} estimate ${
+          job.handlingDurationMinutes || 30
+        } min.`,
+      },
+      {
+        id: "NODE-03",
+        type: "Delivery / drop",
+        location: destination,
+        time: deliveryTime,
+        note: "Confirm arrival, update ETA if needed and wait for next instruction.",
+      },
+      {
+        id: "NODE-04",
+        type: "Continuation",
+        location: "FleetFlow Demo Terminal",
+        time: "After completion",
+        note: "Trailer can continue with another demo driver if the trip continues.",
+      },
+    ];
+  };
+
+  const getDemoAssignmentCheckForJob = (job) => {
+    if (!job) {
+      return {
+        carrier: "Demo Carrier TBD",
+        driver: "Demo Driver TBD",
+        adrCapable: false,
+        gdpCapable: false,
+        trailerCheck: "Not checked",
+        capabilityStatus: "No job selected",
+      };
+    }
+
+    const requiresAdr = job.id?.endsWith("003") || false;
+    const requiresGdp = job.id?.endsWith("006") || false;
+    const adrCapable = job.truck !== "TR-102";
+    const gdpCapable = job.truck === "TR-101" || job.truck === "TR-103";
+    const trailerCheck = job.trailerType ? "Trailer type selected" : "Trailer type missing";
+
+    let capabilityStatus = "OK";
+
+    if (job.status === "Open" || job.truck === "Unassigned") {
+      capabilityStatus = "Needs assignment";
+    } else if (requiresAdr && !adrCapable) {
+      capabilityStatus = "Missing ADR qualification";
+    } else if (requiresGdp && !gdpCapable) {
+      capabilityStatus = "Missing GDP qualification";
+    }
+
+    return {
+      carrier: "FleetFlow Demo Carrier",
+      driver: job.truck && job.truck !== "Unassigned" ? `Demo Driver ${job.truck}` : "Unassigned",
+      adrCapable,
+      gdpCapable,
+      requiresAdr,
+      requiresGdp,
+      trailerCheck,
+      capabilityStatus,
+    };
+  };
+
   const fleetTrucks = Array.from(
     new Set(dailyJobs.map((job) => job.truck).filter((truck) => truck !== "Unassigned")),
   );
@@ -1238,54 +1306,6 @@ export default function App() {
 
   const currentSuggestedPlan = planCheckResults?.suggestedPlan || suggestedPlanView;
 
-
-  // Step 7 fragment: SelectedJobCard.
-  const selectedJobPanel = (
-    <aside className="panel selected-job-card cockpit-selected-job">
-      <div className="selected-job-label">Selected Job</div>
-      <div className="selected-job-id">{selectedJob.id}</div>
-
-      <dl>
-        <dt>Flow</dt>
-        <dd>{selectedJob.flow}</dd>
-
-        <dt>Type</dt>
-        <dd>{selectedJob.type}</dd>
-
-        <dt>Customer</dt>
-        <dd>{selectedJob.customer}</dd>
-
-        <dt>Route</dt>
-        <dd>{`${selectedJob.originCity} -> ${selectedJob.destinationCity}`}</dd>
-
-        <dt>Time</dt>
-        <dd>
-          <span className={getTimeSlotClassName(selectedJob, "loading")}>
-            {getJobTimeLabel(selectedJob)}
-          </span>
-        </dd>
-
-        <dt>Truck</dt>
-        <dd>{selectedJob.truck}</dd>
-
-        <dt>Handling</dt>
-        <dd>
-          {`${selectedJob.handlingType} - ${selectedJob.handlingDurationMinutes} min`}
-        </dd>
-
-        <dt>Next step</dt>
-        <dd>{selectedJob.nextStep}</dd>
-
-        <dt>Status</dt>
-        <dd>
-          <span className={getJobStatusClass(selectedJob.status)}>
-            {selectedJob.status}
-          </span>
-        </dd>
-      </dl>
-    </aside>
-  );
-
   // Step 7 fragment: RouteMap.
   const routeMapPanel = (
     <section className="panel route-panel cockpit-route-map">
@@ -1312,155 +1332,6 @@ export default function App() {
       </MapContainer>
     </section>
   );
-
-  // Step 7 fragment: planner details and assignment helper.
-  const detailsPanel = (
-    <section className="panel result-panel cockpit-details">
-      <h2>Ajotiedot / tulos</h2>
-
-      <div className="details-tabs">
-        <button
-          type="button"
-          className={detailsTab === "driving" ? "details-tab active" : "details-tab"}
-          onClick={() => setDetailsTab("driving")}
-        >
-          Driving
-        </button>
-        <button
-          type="button"
-          className={detailsTab === "preview" ? "details-tab active" : "details-tab"}
-          onClick={() => setDetailsTab("preview")}
-        >
-          Job Preview
-        </button>
-        <button
-          type="button"
-          className={detailsTab === "assignment" ? "details-tab active" : "details-tab"}
-          onClick={() => setDetailsTab("assignment")}
-        >
-          Assignment
-        </button>
-      </div>
-
-      <div className="details-tab-content">
-        {detailsTab === "driving" && (
-          <>
-            <div className={`status ${plan.status.toLowerCase().replace(" ", "-")}`}>
-              {plan.status}
-            </div>
-
-            <dl>
-              <dt>Etaisyys</dt>
-              <dd>{plan.distanceKm} km</dd>
-
-              <dt>Ajoaika</dt>
-              <dd>{formatHours(plan.drivingHours)}</dd>
-
-              <dt>Kuljettajan ajo tanaan</dt>
-              <dd>{formatHours(driverHoursToday)}</dd>
-
-              <dt>Ajo yhteensa</dt>
-              <dd>{formatHours(plan.totalDrivingWithHistory)}</dd>
-
-              <dt>Tauko</dt>
-              <dd>{plan.breakMinutes} min</dd>
-
-              <dt>Kokonaisaika</dt>
-              <dd>{formatHours(plan.totalHours)}</dd>
-
-              <dt>ETA</dt>
-              <dd>{plan.eta}</dd>
-
-              <dt>Pelivara</dt>
-              <dd>{formatHours(Math.max(plan.bufferHours, 0))}</dd>
-            </dl>
-          </>
-        )}
-
-        {detailsTab === "preview" && (
-          <section className="job-preview">
-            <h3>Selected job preview</h3>
-            <dl>
-              <dt>Job ref</dt>
-              <dd>{selectedJob.id}</dd>
-
-              <dt>Driver hours today</dt>
-              <dd>{formatHours(selectedJobPreview.driverHoursToday)}</dd>
-
-              <dt>Route driving time</dt>
-              <dd>{formatHours(selectedJobPreview.routeDrivingHours)}</dd>
-
-              {selectedJob?.handlingType && (
-                <>
-                  <dt>Handling</dt>
-                  <dd>
-                    {`${selectedJob.handlingType} - ${selectedJob.handlingDurationMinutes} min`}
-                  </dd>
-                </>
-              )}
-
-              <dt>Loading slot</dt>
-              <dd>{selectedJob.loadingTimeExact || selectedJob.loadingTimeRange}</dd>
-
-              <dt>Delivery slot</dt>
-              <dd>{selectedJob.deliveryTimeExact || selectedJob.deliveryTimeRange}</dd>
-
-              <dt>Next step</dt>
-              <dd>{selectedJob.nextStep}</dd>
-
-              <dt>Total after job</dt>
-              <dd>
-                {selectedJobPreview.totalDrivingAfterJob === null
-                  ? "Not assigned"
-                  : formatHours(selectedJobPreview.totalDrivingAfterJob)}
-              </dd>
-
-              <dt>Preview status</dt>
-              <dd>
-                <span className={getJobStatusClass(selectedJobPreview.status)}>
-                  {selectedJobPreview.status}
-                </span>
-              </dd>
-            </dl>
-          </section>
-        )}
-
-        {detailsTab === "assignment" && (
-          <>
-            {selectedJob.status === "Open" ? (
-              <section className="assign-truck-panel">
-                <h3>Assign truck</h3>
-                <select
-                  value={selectedAssignTruck}
-                  onChange={(event) => setSelectedAssignTruck(event.target.value)}
-                >
-                  {availableTrucks.map((truckId) => (
-                    <option key={truckId} value={truckId}>
-                      {truckId}
-                    </option>
-                  ))}
-                </select>
-                <button type="button" onClick={handleAssignTruckToSelectedJob}>
-                  Assign
-                </button>
-              </section>
-            ) : (
-              <div className="assignment-locked">
-                Assignment locked: selected job already has a truck.
-              </div>
-            )}
-
-            {actionFeedback && (
-              <div className={`action-feedback ${actionFeedbackType}`}>
-                {actionFeedback}
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </section>
-  );
-
   // Step 7 fragment: JobEventLog / FleetEventLog shared event log.
   const eventLogPanel = (
     <section className="panel notes-panel cockpit-event-log scrollable">
@@ -1482,158 +1353,6 @@ export default function App() {
       </ul>
     </section>
   );
-
-  // Step 7 fragment: JobInputEdit.
-  const jobInputPanel = (
-    <section className="panel job-input-panel scrollable">
-      <div className="panel-header">
-        <h2>Job Input / Edit</h2>
-        <span>{selectedJob.id}</span>
-      </div>
-
-      <div className="job-input-grid">
-        <label>Customer</label>
-        <input
-          value={selectedJob.customer}
-          onChange={(event) => handleUpdateSelectedJob("customer", event.target.value)}
-        />
-
-        <label>Origin / Loading place</label>
-        <select
-          value={selectedJob.originCity}
-          onChange={(event) => handleUpdateSelectedJob("originCity", event.target.value)}
-        >
-          {Object.keys(cities).map((city) => (
-            <option key={city}>{city}</option>
-          ))}
-        </select>
-
-        <label>Destination / Delivery place</label>
-        <select
-          value={selectedJob.destinationCity}
-          onChange={(event) =>
-            handleUpdateSelectedJob("destinationCity", event.target.value)
-          }
-        >
-          {Object.keys(cities).map((city) => (
-            <option key={city}>{city}</option>
-          ))}
-        </select>
-
-        <label>Loading exact</label>
-        <input
-          type="time"
-          value={selectedJob.loadingTimeExact || ""}
-          onChange={(event) =>
-            handleUpdateSelectedJob("loadingTimeExact", event.target.value)
-          }
-        />
-
-        <label>Loading range</label>
-        <input
-          value={selectedJob.loadingTimeRange || ""}
-          placeholder="14:00-14:45"
-          onChange={(event) =>
-            handleUpdateSelectedJob("loadingTimeRange", event.target.value)
-          }
-        />
-
-        <label>Delivery exact</label>
-        <input
-          type="time"
-          value={selectedJob.deliveryTimeExact || ""}
-          onChange={(event) =>
-            handleUpdateSelectedJob("deliveryTimeExact", event.target.value)
-          }
-        />
-
-        <label>Delivery range</label>
-        <input
-          value={selectedJob.deliveryTimeRange || ""}
-          placeholder="15:00-15:45"
-          onChange={(event) =>
-            handleUpdateSelectedJob("deliveryTimeRange", event.target.value)
-          }
-        />
-
-        <label>Next step</label>
-        <select
-          value={selectedJob.nextStep || "Seuraava lastaus"}
-          onChange={(event) => handleUpdateSelectedJob("nextStep", event.target.value)}
-        >
-          <option>Lautta</option>
-          <option>Port</option>
-          <option>Demo Terminal</option>
-          <option>Jalalle</option>
-          <option>Seuraava lastaus</option>
-        </select>
-
-        <label>Handling</label>
-        <select
-          value={selectedJob.handlingType}
-          onChange={(event) =>
-            handleUpdateSelectedJob("handlingType", event.target.value)
-          }
-        >
-          <option>Loading</option>
-          <option>Unloading</option>
-          <option>Trailer pickup</option>
-          <option>Trailer drop</option>
-          <option>Empty return</option>
-          <option>Trailer exchange</option>
-          <option>Port pickup</option>
-          <option>Port drop</option>
-        </select>
-
-        <label>Duration min</label>
-        <input
-          type="number"
-          min="0"
-          step="5"
-          value={selectedJob.handlingDurationMinutes}
-          onChange={(event) =>
-            handleUpdateSelectedJob(
-              "handlingDurationMinutes",
-              Number(event.target.value),
-            )
-          }
-        />
-
-        {selectedJob.status === "Open" && (
-          <>
-            <label>Assign truck</label>
-            <select
-              value={selectedJob.truck}
-              onChange={(event) => handleUpdateSelectedJob("truck", event.target.value)}
-            >
-              <option>Unassigned</option>
-              {availableTrucks.map((truckId) => (
-                <option key={truckId}>{truckId}</option>
-              ))}
-            </select>
-          </>
-        )}
-
-        <label>Trailer</label>
-        <select
-          value={selectedJob.trailerType}
-          onChange={(event) =>
-            handleUpdateSelectedJob("trailerType", event.target.value)
-          }
-        >
-          <option>Box trailer</option>
-          <option>Side-opening box</option>
-          <option>Thermo trailer</option>
-          <option>Curtain trailer</option>
-        </select>
-      </div>
-
-      <button type="button" className="add-job-button" onClick={handleAddChainedDemoJob}>
-        Add chained demo job
-      </button>
-    </section>
-  );
-
   // Step 7 fragment: JobSelector for Route & Risk.
   const jobSelectorPanel = (
     <section className="panel job-selector-panel scrollable">
@@ -2420,44 +2139,425 @@ export default function App() {
       )}
 
       {workspaceTab === "job" && (
-        <section className="workspace-view job-workspace job-workspace-grid scrollable">
-          {/* Step 7 Job workspace: four equal panels with independent scroll. */}
-          <div className="job-grid-panel scrollable job-grid-top-left">
-            <h2>Job Input / Edit</h2>
-            {selectedJob ? (
-              jobInputPanel
-            ) : (
-              <div className="job-event-placeholder">Select a job to edit</div>
-            )}
+        <section className="workspace-view workspace-panel job-workspace">
+          <div className="job-workspace-header">
+            <div>
+              <p className="panel-kicker">Job workspace</p>
+              <h2>Selected Job Control</h2>
+              <p className="panel-subtitle">
+                Review the selected job, trip content, nodes, assignment, instructions
+                and validation result.
+              </p>
+            </div>
+
+            <div className="job-selector-block">
+              <label htmlFor="job-workspace-selector">Selected job</label>
+              <select
+                id="job-workspace-selector"
+                value={selectedJobId}
+                onChange={(event) => {
+                  const nextJobId = event.target.value;
+                  setSelectedJobId(nextJobId);
+                  const nextJob = dailyJobs.find((job) => job.id === nextJobId);
+                  if (nextJob) {
+                    syncPlannerStateFromJob(nextJob);
+                  }
+                }}
+              >
+                {dailyJobs.map((job) => (
+                  <option key={job.id} value={job.id}>
+                    {job.id} · {job.customer || "Unknown customer"} ·{" "}
+                    {job.originCity || "Origin TBD"} →{" "}
+                    {job.destinationCity || "Destination TBD"}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="job-grid-panel scrollable job-grid-top-right">
-            <h2>Selected Job Card</h2>
-            {selectedJob ? (
-              selectedJobPanel
-            ) : (
-              <div className="job-event-placeholder">Select a job to view details</div>
-            )}
+          <div
+            className="job-workspace-tabs"
+            role="tablist"
+            aria-label="Job workspace sections"
+          >
+            {jobWorkspaceTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`job-workspace-tab ${
+                  jobWorkspaceTab === tab.id ? "active" : ""
+                }`}
+                onClick={() => setJobWorkspaceTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
-          <div className="job-grid-panel scrollable job-grid-bottom-left">
-            <h2>DrivingOutput</h2>
-            {selectedJob ? (
-              <div className="job-details-panel scrollable">{detailsPanel}</div>
-            ) : (
-              <div className="job-event-placeholder">Select a job to view driving output</div>
-            )}
-          </div>
+          <div className="job-workspace-layout">
+            <div className="job-workspace-main">
+              {jobWorkspaceTab === "overview" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>Overview</h3>
+                    <span className={getJobStatusClass(selectedJob?.status)}>
+                      {selectedJob?.status || "Status unknown"}
+                    </span>
+                  </div>
 
-          <div className="job-grid-panel scrollable job-grid-bottom-right">
-            <h2>Job Event Log</h2>
-            {selectedJob ? (
-              eventLogPanel
-            ) : (
-              <div className="job-event-placeholder">
-                Select a job to view event log
+                  <div className="job-summary-grid">
+                    <div>
+                      <span>Job ID</span>
+                      <strong>{selectedJob?.id || "No job selected"}</strong>
+                    </div>
+                    <div>
+                      <span>Trip ID</span>
+                      <strong>{getDemoTripDetailsForJob(selectedJob).tripId}</strong>
+                    </div>
+                    <div>
+                      <span>Customer</span>
+                      <strong>{selectedJob?.customer || "Unknown customer"}</strong>
+                    </div>
+                    <div>
+                      <span>Route</span>
+                      <strong>
+                        {selectedJob?.originCity || "Origin TBD"} →{" "}
+                        {selectedJob?.destinationCity || "Destination TBD"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Time window</span>
+                      <strong>
+                        {selectedJob?.loadingTime || "Start TBD"} –{" "}
+                        {selectedJob?.deliveryTime || "End TBD"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Truck</span>
+                      <strong>{selectedJob?.truck || "Truck TBD"}</strong>
+                    </div>
+                    <div>
+                      <span>Trailer</span>
+                      <strong>{selectedJob?.trailerType || "Trailer TBD"}</strong>
+                    </div>
+                    <div>
+                      <span>Handling</span>
+                      <strong>
+                        {selectedJob?.handlingType || "Handling TBD"} ·{" "}
+                        {selectedJob?.handlingDurationMinutes || 0} min
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Next step</span>
+                      <strong>
+                        {selectedJob?.status === "Open"
+                          ? "Assign truck / driver"
+                          : "Review validation and instructions"}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {jobWorkspaceTab === "tripOrders" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>Trip & Orders</h3>
+                    <span>{getDemoTripDetailsForJob(selectedJob).planningStatus}</span>
+                  </div>
+
+                  <div className="trip-summary-strip">
+                    <div>
+                      <span>Trip</span>
+                      <strong>{getDemoTripDetailsForJob(selectedJob).tripId}</strong>
+                    </div>
+                    <div>
+                      <span>Type</span>
+                      <strong>{getDemoTripDetailsForJob(selectedJob).tripType}</strong>
+                    </div>
+                    <div>
+                      <span>Orders</span>
+                      <strong>{getDemoTripDetailsForJob(selectedJob).orderCount}</strong>
+                    </div>
+                    <div>
+                      <span>Stops</span>
+                      <strong>{getDemoTripDetailsForJob(selectedJob).stopsCount}</strong>
+                    </div>
+                  </div>
+
+                  <div className="job-data-table-wrapper">
+                    <table className="job-data-table">
+                      <thead>
+                        <tr>
+                          <th>Order</th>
+                          <th>Customer</th>
+                          <th>Pickup</th>
+                          <th>Delivery</th>
+                          <th>Goods</th>
+                          <th>LDM</th>
+                          <th>KG</th>
+                          <th>Temp</th>
+                          <th>Req.</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {getDemoOrdersForJob(selectedJob).map((order) => (
+                          <tr key={order.id}>
+                            <td>{order.id}</td>
+                            <td>{order.customer}</td>
+                            <td>{order.pickup}</td>
+                            <td>{order.delivery}</td>
+                            <td>{order.goods}</td>
+                            <td>{order.ldm}</td>
+                            <td>{order.kg}</td>
+                            <td>{order.temperature}</td>
+                            <td>
+                              <div className="requirement-badges">
+                                {order.adr && <span>ADR</span>}
+                                {order.gdp && <span>GDP</span>}
+                                {!order.adr && !order.gdp && <span>Standard</span>}
+                              </div>
+                            </td>
+                            <td>{order.planningStatus}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {jobWorkspaceTab === "stopsNodes" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>Stops / Nodes</h3>
+                    <span>Physical trip events</span>
+                  </div>
+
+                  <div className="job-node-list">
+                    {getDemoNodesForJob(selectedJob).map((node, index) => (
+                      <div className="job-node-card" key={node.id}>
+                        <div className="job-node-index">
+                          {String(index + 1).padStart(2, "0")}
+                        </div>
+                        <div>
+                          <strong>{node.type}</strong>
+                          <span>
+                            {node.location} · {node.time}
+                          </span>
+                          <p>{node.note}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {jobWorkspaceTab === "assignment" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>Assignment</h3>
+                    <span>{getDemoAssignmentCheckForJob(selectedJob).capabilityStatus}</span>
+                  </div>
+
+                  <div className="job-summary-grid">
+                    <div>
+                      <span>Carrier</span>
+                      <strong>{getDemoAssignmentCheckForJob(selectedJob).carrier}</strong>
+                    </div>
+                    <div>
+                      <span>Truck</span>
+                      <strong>{selectedJob?.truck || "Truck TBD"}</strong>
+                    </div>
+                    <div>
+                      <span>Trailer</span>
+                      <strong>{selectedJob?.trailerType || "Trailer TBD"}</strong>
+                    </div>
+                    <div>
+                      <span>Driver</span>
+                      <strong>{getDemoAssignmentCheckForJob(selectedJob).driver}</strong>
+                    </div>
+                    <div>
+                      <span>ADR capability</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).adrCapable
+                          ? "Available"
+                          : "Not available"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>GDP capability</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).gdpCapable
+                          ? "Available"
+                          : "Not available"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Trailer check</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).trailerCheck}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Assignment status</span>
+                      <strong>
+                        {selectedJob?.status === "Open"
+                          ? "Open / needs assignment"
+                          : "Assigned"}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {selectedJob?.status === "Open" && (
+                    <div className="job-assignment-action">
+                      <p>This demo job is open. Assign a truck to continue planning.</p>
+
+                      <div className="assignment-controls">
+                        <select
+                          value={selectedAssignTruck}
+                          onChange={(event) => setSelectedAssignTruck(event.target.value)}
+                        >
+                          {availableTrucks.map((truck) => (
+                            <option key={truck} value={truck}>
+                              {truck}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button type="button" onClick={handleAssignTruckToSelectedJob}>
+                          Assign truck
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {jobWorkspaceTab === "instructions" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>Instructions</h3>
+                    <span>Demo driver / carrier preview</span>
+                  </div>
+
+                  <div className="job-instruction-preview">
+                    <p>
+                      <strong>Job:</strong> {selectedJob?.id || "No job selected"}
+                    </p>
+                    <p>
+                      <strong>Trip:</strong>{" "}
+                      {getDemoTripDetailsForJob(selectedJob).tripId}
+                    </p>
+                    <p>
+                      Pick up / start from {selectedJob?.originCity || "Demo origin"} and
+                      continue to {selectedJob?.destinationCity || "Demo destination"}{" "}
+                      according to the node sequence.
+                    </p>
+                    <p>
+                      Handling: {selectedJob?.handlingType || "Handling TBD"} · estimated{" "}
+                      {selectedJob?.handlingDurationMinutes || 0} min.
+                    </p>
+                    <p>
+                      Trailer: {selectedJob?.trailerType || "Trailer TBD"}. Check trailer
+                      condition, temperature setting if required, documents and load
+                      securing equipment before departure.
+                    </p>
+                    <p>
+                      Send ETA update before arrival and confirm completion after the final
+                      node. Wait for next demo instruction if the trip continues with
+                      another driver.
+                    </p>
+                    <p className="demo-note">
+                      Demo preview only. All names, references, places and instructions are
+                      fictional.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {jobWorkspaceTab === "validation" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>Validation</h3>
+                    <span>{selectedJob?.status || "Not checked"}</span>
+                  </div>
+
+                  <div className="job-validation-list">
+                    <div>
+                      <strong>Driving time</strong>
+                      <span>
+                        Current preview uses the existing FleetFlow driving time logic.
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Break requirement</strong>
+                      <span>
+                        {selectedJob?.status === "Break required"
+                          ? "Break required before completion."
+                          : "No break warning in selected job status."}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Daily driving limit</strong>
+                      <span>
+                        {selectedJob?.status === "Risk"
+                          ? "Review 9h daily driving limit."
+                          : "No daily driving risk in selected job status."}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>ADR check</strong>
+                      <span>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresAdr
+                          ? getDemoAssignmentCheckForJob(selectedJob).capabilityStatus
+                          : "No ADR requirement in demo order."}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>GDP check</strong>
+                      <span>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresGdp
+                          ? getDemoAssignmentCheckForJob(selectedJob).capabilityStatus
+                          : "No GDP requirement in demo order."}
+                      </span>
+                    </div>
+                    <div>
+                      <strong>Trailer type</strong>
+                      <span>{getDemoAssignmentCheckForJob(selectedJob).trailerCheck}</span>
+                    </div>
+                    <div>
+                      <strong>Location continuity</strong>
+                      <span>
+                        Placeholder for later route continuity and sequence validation.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <aside className="job-workspace-side">
+              <div className="side-panel">
+                <h3>Job Planning Log</h3>
+                <ul className="job-planning-log">
+                  <li>Selected {selectedJob?.id || "no job"} loaded to Job workspace.</li>
+                  <li>Status: {selectedJob?.status || "Unknown"}.</li>
+                  <li>
+                    Route: {selectedJob?.originCity || "Origin TBD"} →{" "}
+                    {selectedJob?.destinationCity || "Destination TBD"}.
+                  </li>
+                  <li>
+                    Handling: {selectedJob?.handlingType || "Handling TBD"} ·{" "}
+                    {selectedJob?.handlingDurationMinutes || 0} min.
+                  </li>
+                  <li>
+                    Use Fleet tab for full day plan check and truck sequence validation.
+                  </li>
+                </ul>
               </div>
-            )}
+            </aside>
           </div>
         </section>
       )}
