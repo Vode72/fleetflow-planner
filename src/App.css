@@ -1121,33 +1121,69 @@ dd {
 /* --- Step 6.2: Fleet Timeline & Workspace Tabs --- */
 .workspace-tabs {
   display: flex;
-  gap: 0.35rem;
-  padding: 0.4rem 0.5rem 0;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 10px 10px 0;
   border-bottom: 1px solid var(--border);
 }
 
-.workspace-tab {
+.workspace-tabs .workspace-tab {
+  width: auto;
+  height: auto;
   border: 1px solid var(--border);
-  border-bottom: none;
+  border-bottom-color: var(--border);
   background: var(--panel-header);
   color: var(--text-main);
-  padding: 0.38rem 0.75rem;
-  border-radius: 7px 7px 0 0;
-  font-size: 0.78rem;
-  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px 8px 0 0;
   cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.1;
+  box-shadow: none;
 }
 
-.workspace-tab:hover {
-  border-color: var(--accent);
-}
-
-.workspace-tab.active {
+.workspace-tabs .workspace-tab:hover {
   background: var(--panel-bg);
+  border-color: var(--accent);
   color: var(--text-main);
+}
+
+.workspace-tabs .workspace-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
   font-weight: 800;
-  position: relative;
-  top: 1px;
+  position: static;
+}
+
+.workspace-tabs .workspace-tab.active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.app.light .workspace-tabs .workspace-tab,
+.app.dark .workspace-tabs .workspace-tab {
+  background: var(--panel-header);
+  border-color: var(--border);
+  color: var(--text-main);
+}
+
+.app.light .workspace-tabs .workspace-tab:hover,
+.app.dark .workspace-tabs .workspace-tab:hover {
+  background: var(--panel-bg);
+  border-color: var(--accent);
+  color: var(--text-main);
+}
+
+.app.light .workspace-tabs .workspace-tab.active,
+.app.light .workspace-tabs .workspace-tab.active:hover,
+.app.dark .workspace-tabs .workspace-tab.active,
+.app.dark .workspace-tabs .workspace-tab.active:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .workspace-view {

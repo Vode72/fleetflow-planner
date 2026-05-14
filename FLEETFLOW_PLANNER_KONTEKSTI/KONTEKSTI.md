@@ -2820,3 +2820,43 @@ npm run build passed
 
 ---
 
+## Step 8.1A.3 — Main Workspace Tab Hover Fix
+
+GitHub Pages -live-demossa päävälilehtien hover-/active-tyyli korjattiin.
+
+Korjattu ongelma:
+
+- Board / Job / Fleet / Route & Risk -päävälilehti muuttui hoverissa tai aktiivisena liian tummaksi / mustaksi
+- tyyli ei vastannut FleetFlow Plannerin SAP/TMS-henkistä vaaleaa tabirakennetta
+
+Korjaus:
+
+- päävälilehtien CSS-spesifisyyttä tarkennettiin
+- hover-tila muutettiin vaaleaksi / accent-henkiseksi
+- active-tab pidettiin selkeästi erottuvana
+- teksti pysyy luettavana
+- Job Workspace -sisäisiin tabeihin ei tehty muutoksia
+
+Tässä vaiheessa ei muutettu:
+
+- `src/App.jsx`-logiikkaa
+- Boardin rakennetta
+- Job Workspace -rakennetta
+- Fleetin rakennetta
+- Route & Risk -rakennetta
+- dailyJobs-demodataa
+- README-kuvia
+
+Muokatut tiedostot:
+
+- `src/App.css`
+
+Verifiointi:
+
+```text
+npm run lint passed
+npm run build passed
+npm run deploy published
+```
+
+---
