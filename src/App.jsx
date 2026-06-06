@@ -2831,10 +2831,15 @@ export default function App() {
                   </div>
 
                   <div className="job-instruction-preview">
-                    <p>
+                    <div className="job-instruction-summary">
+                      <strong>{selectedJob?.id || "No job selected"}</strong>
+                      <span>{getDemoTripDetailsForJob(selectedJob).tripId}</span>
+                      <span>Demo driver / carrier preview</span>
+                    </div>
+                    <p className="job-instruction-legacy-meta">
                       <strong>Job:</strong> {selectedJob?.id || "No job selected"}
                     </p>
-                    <p>
+                    <p className="job-instruction-legacy-meta">
                       <strong>Trip:</strong>{" "}
                       {getDemoTripDetailsForJob(selectedJob).tripId}
                     </p>
@@ -2880,21 +2885,30 @@ export default function App() {
                   <div className="job-validation-list">
                     {getDemoValidationNotesForJob(selectedJob).map((note) => (
                       <div key={`${note.level}-${note.text}`}>
-                        <strong>
-                          <span className={getDemoValidationLevelClass(note.level)}>
-                            {note.level}
-                          </span>
-                        </strong>
+                        <span className={getDemoValidationLevelClass(note.level)}>
+                          {note.level}
+                        </span>
+                        <strong>Demo data</strong>
                         <span>{note.text}</span>
                       </div>
                     ))}
                     <div>
+                      <span className="status-pill status-open">info</span>
                       <strong>Driving time</strong>
                       <span>
                         Current preview uses the existing FleetFlow driving time logic.
                       </span>
                     </div>
                     <div>
+                      <span
+                        className={
+                          selectedJob?.status === "Break required"
+                            ? "status-pill status-break"
+                            : "status-pill status-ok"
+                        }
+                      >
+                        {selectedJob?.status === "Break required" ? "warning" : "ok"}
+                      </span>
                       <strong>Break requirement</strong>
                       <span>
                         {selectedJob?.status === "Break required"
@@ -2903,6 +2917,15 @@ export default function App() {
                       </span>
                     </div>
                     <div>
+                      <span
+                        className={
+                          selectedJob?.status === "Risk"
+                            ? "status-pill status-risk"
+                            : "status-pill status-ok"
+                        }
+                      >
+                        {selectedJob?.status === "Risk" ? "risk" : "ok"}
+                      </span>
                       <strong>Daily driving limit</strong>
                       <span>
                         {selectedJob?.status === "Risk"
@@ -2911,6 +2934,17 @@ export default function App() {
                       </span>
                     </div>
                     <div>
+                      <span
+                        className={
+                          getDemoAssignmentCheckForJob(selectedJob).requiresAdr
+                            ? "status-pill status-break"
+                            : "status-pill status-ok"
+                        }
+                      >
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresAdr
+                          ? "warning"
+                          : "ok"}
+                      </span>
                       <strong>ADR check</strong>
                       <span>
                         {getDemoAssignmentCheckForJob(selectedJob).requiresAdr
@@ -2919,6 +2953,17 @@ export default function App() {
                       </span>
                     </div>
                     <div>
+                      <span
+                        className={
+                          getDemoAssignmentCheckForJob(selectedJob).requiresGdp
+                            ? "status-pill status-break"
+                            : "status-pill status-ok"
+                        }
+                      >
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresGdp
+                          ? "warning"
+                          : "ok"}
+                      </span>
                       <strong>GDP check</strong>
                       <span>
                         {getDemoAssignmentCheckForJob(selectedJob).requiresGdp
@@ -2927,10 +2972,12 @@ export default function App() {
                       </span>
                     </div>
                     <div>
+                      <span className="status-pill status-open">info</span>
                       <strong>Trailer type</strong>
                       <span>{getDemoAssignmentCheckForJob(selectedJob).trailerCheck}</span>
                     </div>
                     <div>
+                      <span className="status-pill status-open">info</span>
                       <strong>Location continuity</strong>
                       <span>
                         Placeholder for later route continuity and sequence validation.
