@@ -606,6 +606,26 @@ Board, Fleet and Route & Risk remained unchanged.
 
 Final correction: ensured the actually rendered Job Workspace header uses the compact toolbar layout.
 
+### Step 8.1C.2 — Add All Jobs Tab to Job Workspace
+
+Completed.
+
+Added an All Jobs internal tab to the Job Workspace.
+
+The All Jobs tab shows a compact clickable list of the current daily jobs so the user can select a job inside the Job workspace without relying only on the selected job dropdown.
+
+Added:
+
+- All Jobs tab before Overview
+- compact job list with job id, customer, route, time window, truck/resource, handling and status
+- selected row highlight
+- click action that selects the job and opens the Overview tab
+- scoped Job Workspace CSS for the All Jobs list
+
+The existing selected job dropdown remains available in the compact Job header.
+
+Board, Fleet and Route & Risk remained unchanged.
+
 ### README screenshot update
 
 Completed.
@@ -643,11 +663,12 @@ npm run deploy
 
 Goal:
 
-Check and polish the Job Workspace on narrower screens after the desktop visual density update.
+Check and polish the Job Workspace on narrower screens after the Job Workspace data, density, header and All Jobs improvements.
 
 Possible focus areas:
 
-- tab wrapping
+- internal tab wrapping
+- All Jobs responsive list behavior
 - order table horizontal scroll
 - assignment grid stacking
 - validation row readability
