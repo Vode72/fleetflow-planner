@@ -1161,6 +1161,7 @@ export default function App() {
   ];
 
   const jobWorkspaceTabs = [
+    { id: "allJobs", label: "All Jobs" },
     { id: "overview", label: "Overview" },
     { id: "tripOrders", label: "Trip & Orders" },
     { id: "stopsNodes", label: "Stops / Nodes" },
@@ -2544,6 +2545,58 @@ export default function App() {
 
           <div className="job-workspace-layout">
             <div className="job-workspace-main">
+              {jobWorkspaceTab === "allJobs" && (
+                <div className="job-tab-panel">
+                  <div className="panel-section-header">
+                    <h3>All Jobs</h3>
+                    <span>{dailyJobs.length} daily jobs</span>
+                  </div>
+
+                  <div className="job-all-list">
+                    <div className="job-all-header" aria-hidden="true">
+                      <span>Job</span>
+                      <span>Customer</span>
+                      <span>Route</span>
+                      <span>Window</span>
+                      <span>Truck</span>
+                      <span>Handling</span>
+                      <span>Status</span>
+                    </div>
+
+                    {dailyJobs.map((job) => (
+                      <button
+                        key={job.id}
+                        type="button"
+                        className={`job-all-row ${
+                          job.id === selectedJobId ? "is-selected" : ""
+                        }`}
+                        onClick={() => {
+                          setSelectedJobId(job.id);
+                          syncPlannerStateFromJob(job);
+                          setJobWorkspaceTab("overview");
+                        }}
+                      >
+                        <span className="job-all-id">{job.id}</span>
+                        <span>{job.customer || "Demo customer"}</span>
+                        <span>
+                          {job.originCity || "Origin TBD"} →{" "}
+                          {job.destinationCity || "Destination TBD"}
+                        </span>
+                        <span>{getJobTimeLabel(job)}</span>
+                        <span>{job.truck || "Unassigned"}</span>
+                        <span>
+                          {job.handlingType || "Handling TBD"} ·{" "}
+                          {job.handlingDurationMinutes || 0} min
+                        </span>
+                        <span className={getJobStatusClass(job.status || "Open")}>
+                          {job.status || "Open"}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {jobWorkspaceTab === "overview" && (
                 <div className="job-tab-panel">
                   <div className="panel-section-header">
