@@ -534,6 +534,24 @@ Existing Job Workspace helper functions now read from the improved demo data fir
 
 Board, Fleet and Route & Risk remained unchanged.
 
+### Step 8.1C — Job Workspace Visual Density Polish
+
+Completed.
+
+Job Workspace visual density was improved without changing data logic.
+
+Polished:
+
+- more compact assignment cards
+- denser stops / nodes rows
+- slightly tighter trip/order table
+- clearer instructions layout
+- more compact validation rows
+- tighter Job Planning Log
+- Job Workspace scoped CSS so Board, Fleet and Route & Risk remain unchanged
+
+No data model, helper logic or main workspace tab changes were made.
+
 ### README screenshot update
 
 Completed.
@@ -567,17 +585,17 @@ npm run deploy
 
 ## Next Recommended Step
 
-### Step 8.1C — Job Workspace Visual Density Polish
+### Step 8.1D — Job Workspace Mobile Check / Responsive Polish
 
 Goal:
 
-Improve the visual density and readability of the Job Workspace after the data polish.
+Check and polish the Job Workspace on narrower screens after the desktop visual density update.
 
 Possible focus areas:
 
-- make order/node cards more compact
-- improve badge alignment
-- reduce empty vertical space
-- make tab content easier to scan
-- keep mobile/desktop usability
-- do not change data logic
+- tab wrapping
+- order table horizontal scroll
+- assignment grid stacking
+- validation row readability
+- Job Planning Log placement
+- no data logic changes
