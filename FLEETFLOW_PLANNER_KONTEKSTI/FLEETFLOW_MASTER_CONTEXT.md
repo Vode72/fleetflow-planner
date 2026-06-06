@@ -294,9 +294,10 @@ Current Job Workspace structure:
 
 ```text
 Job Workspace
-├── Job workspace header
-├── Selected job dropdown
+├── Compact toolbar header
+│   └── Selected job dropdown
 ├── Internal tabs
+│   ├── All Jobs
 │   ├── Overview
 │   ├── Trip & Orders
 │   ├── Stops / Nodes
@@ -312,7 +313,10 @@ Current Job implementation includes:
 - `jobWorkspaceTabs` definition
 - `selectedJobId` sync
 - `syncPlannerStateFromJob`
+- compact toolbar-style Job header
+- All Jobs internal tab with clickable daily job list
 - current Open-job assignment action
+- instruction and validation notes rendered from demo job details
 - demo helpers:
   - `getDemoTripDetailsForJob`
   - `getDemoOrdersForJob`
@@ -320,6 +324,8 @@ Current Job implementation includes:
   - `getDemoAssignmentCheckForJob`
 
 Job Workspace tabs are styled to match the Board Detail Panel tab selector style.
+
+Job Workspace header is now a compact toolbar-style header with Selected Job Control and selected job dropdown aligned in the same header area.
 
 ---
 
@@ -422,6 +428,8 @@ Implemented:
 - Job Workspace internal tabs
 - README screenshots updated
 - live demo updated
+- compact Job Workspace toolbar header
+- All Jobs internal tab with clickable daily job list
 
 ---
 
