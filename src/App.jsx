@@ -2486,18 +2486,11 @@ export default function App() {
 
       {workspaceTab === "job" && (
         <section className="workspace-view workspace-panel job-workspace">
-          <div className="job-workspace-header">
-            <div>
-              <p className="panel-kicker">Job workspace</p>
-              <h2>Selected Job Control</h2>
-              <p className="panel-subtitle">
-                Review the selected job, trip content, nodes, assignment, instructions
-                and validation result.
-              </p>
-            </div>
-
-            <div className="job-selector-block">
-              <label htmlFor="job-workspace-selector">Selected job</label>
+          <div className="job-workspace-header job-toolbar-header">
+            <div className="job-toolbar-top">
+                <h2 className="job-toolbar-title">Selected Job Control</h2>
+              <label className="job-toolbar-selector" htmlFor="job-workspace-selector">
+                <span>Selected job</span>
               <select
                 id="job-workspace-selector"
                 value={selectedJobId}
@@ -2518,7 +2511,16 @@ export default function App() {
                   </option>
                 ))}
               </select>
+              </label>
             </div>
+            <p className="job-toolbar-description">
+              <span className="job-toolbar-context">Job workspace</span>
+              <span className="job-toolbar-dot">·</span>
+              <span>
+                Review selected job, trip content, nodes, assignment, instructions and
+                validation result.
+              </span>
+            </p>
           </div>
 
           <div

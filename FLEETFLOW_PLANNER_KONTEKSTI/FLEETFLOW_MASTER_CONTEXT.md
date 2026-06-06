@@ -552,6 +552,60 @@ Polished:
 
 No data model, helper logic or main workspace tab changes were made.
 
+### Step 8.1C.1 — Compact Job Workspace Header
+
+Completed.
+
+Job Workspace header was compacted without changing data logic or tab content.
+
+Polished:
+
+- reduced vertical whitespace in the Job header
+- aligned selected job dropdown with the header area
+- made the header more toolbar-like and TMS/SAP-style
+- kept Job Workspace tabs and data-driven content unchanged
+- preserved responsive stacking for narrower screens
+
+Board, Fleet and Route & Risk remained unchanged.
+
+### Step 8.1C.1.1 — Reduce Job Header Vertical Whitespace
+
+Completed.
+
+Reduced remaining vertical whitespace in the compact Job Workspace header.
+
+Adjusted only scoped Job Workspace header spacing, margins and line-height.
+
+No data logic, helper functions, tab content or other main workspace views were changed.
+
+### Step 8.1C.1.2 — Force Compact Job Header Height
+
+Completed.
+
+Final compact header spacing correction for Job Workspace.
+
+Reduced remaining parent/header whitespace so the selected job header is closer to a compact TMS/SAP toolbar.
+
+No data logic, helper functions, tab content or other workspace views were changed.
+
+### Step 8.1C.1.3 — Convert Job Header to True Compact Toolbar
+
+Completed.
+
+Job Workspace header was converted from a hero-like panel into a true compact toolbar-style header.
+
+Polished:
+
+- title and selected job dropdown aligned in the same compact header area
+- Job workspace label moved into the compact description line
+- reduced remaining vertical whitespace
+- kept selected job dropdown logic unchanged
+- kept Job Workspace tabs and content unchanged
+
+Board, Fleet and Route & Risk remained unchanged.
+
+Final correction: ensured the actually rendered Job Workspace header uses the compact toolbar layout.
+
 ### README screenshot update
 
 Completed.
