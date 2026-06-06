@@ -513,6 +513,27 @@ Fixed main workspace tab hover/active styling for:
 
 Hover no longer turns black in GitHub Pages live demo.
 
+### Step 8.1B — Job Workspace Data Polish
+
+Completed.
+
+Job Workspace was made more data-driven without a full Trip Builder or large refactor.
+
+Added a controlled fictional demo detail structure for selected jobs, including:
+
+- tripId
+- tripType
+- planningStatus
+- orders
+- nodes
+- requirements
+- instructionNotes
+- validationNotes
+
+Existing Job Workspace helper functions now read from the improved demo data first and use fallbacks when data is missing.
+
+Board, Fleet and Route & Risk remained unchanged.
+
 ### README screenshot update
 
 Completed.
@@ -546,50 +567,17 @@ npm run deploy
 
 ## Next Recommended Step
 
-### Step 8.1B — Job Workspace Data Polish
+### Step 8.1C — Job Workspace Visual Density Polish
 
 Goal:
 
-Make the Job Workspace more data-driven without doing a full Trip Builder or large refactor.
+Improve the visual density and readability of the Job Workspace after the data polish.
 
-Step 8.1B should:
+Possible focus areas:
 
-- reduce hardcoded helper-based demo values
-- add a controlled fictional data structure for trip/order/node/requirement data
-- keep existing UI intact
-- keep Board, Fleet and Route & Risk unchanged
-- keep current helper functions but make them read from the improved demo data first
-- use fallbacks where data is missing
-
-Possible data fields:
-
-- `tripId`
-- `tripType`
-- `planningStatus`
-- `orders`
-- `nodes`
-- `requirements`
-- `instructionNotes`
-- `validationNotes`
-
-Safe implementation options:
-
-1. Add these fields directly to `dailyJobs`.
-2. Or create a separate `demoJobDetailsById` / `demoTripsByJobId` structure.
-
-Preferred for Step 8.1B:
-
-Use a separate `demoJobDetailsById` or similar structure to avoid bloating the current `dailyJobs` too much and to reduce risk.
-
-After Step 8.1B:
-
-```bash
-npm run lint
-npm run build
-```
-
-If UI changed and live demo must update:
-
-```bash
-npm run deploy
-```
+- make order/node cards more compact
+- improve badge alignment
+- reduce empty vertical space
+- make tab content easier to scan
+- keep mobile/desktop usability
+- do not change data logic

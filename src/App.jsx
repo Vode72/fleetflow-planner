@@ -197,6 +197,268 @@ const initialDailyJobs = [
   };
 });
 
+const demoJobDetailsById = {
+  "JOB-001": {
+    tripId: "TRIP-DEMO-001",
+    tripType: "Domestic FTL / terminal linked",
+    planningStatus: "Ready for assignment",
+    orders: [
+      {
+        orderRef: "ORD-DEMO-1001",
+        customer: "Nordic Demo Foods",
+        pickup: "Demo Terminal North",
+        delivery: "Demo DC East",
+        pickupWindow: "07:30-09:00",
+        deliveryWindow: "11:00-13:00",
+        goods: "Chilled packed goods",
+        kg: 8200,
+        ldm: 8.4,
+        pallets: 18,
+        temperature: "+2 C / +6 C",
+        adr: false,
+        gdp: false,
+        status: "Planned",
+      },
+      {
+        orderRef: "ORD-DEMO-1002",
+        customer: "Arctic Demo Retail",
+        pickup: "Demo Terminal North",
+        delivery: "Demo DC West",
+        pickupWindow: "08:00-09:30",
+        deliveryWindow: "12:00-14:00",
+        goods: "Retail roll cages",
+        kg: 3100,
+        ldm: 4.2,
+        pallets: 10,
+        temperature: "+2 C / +6 C",
+        adr: false,
+        gdp: false,
+        status: "Planned",
+      },
+    ],
+    nodes: [
+      {
+        type: "terminal pickup",
+        location: "Demo Terminal North",
+        window: "07:30-08:00",
+        handlingMinutes: 30,
+        note: "Pick up preloaded trailer from outbound lane.",
+      },
+      {
+        type: "delivery",
+        location: "Demo DC East",
+        window: "11:00-13:00",
+        handlingMinutes: 60,
+        note: "Standard dock delivery.",
+      },
+      {
+        type: "delivery",
+        location: "Demo DC West",
+        window: "12:00-14:00",
+        handlingMinutes: 45,
+        note: "Confirm remaining load before final delivery.",
+      },
+    ],
+    requirements: {
+      adr: false,
+      gdp: false,
+      thermo: true,
+      trailerType: "Thermo trailer",
+      equipment: ["Load locks", "Temperature printout"],
+    },
+    instructionNotes: [
+      "Check trailer temperature before departure.",
+      "Keep delivery documents with the driver folder.",
+    ],
+    validationNotes: [
+      {
+        level: "ok",
+        text: "Trailer type matches temperature requirement.",
+      },
+      {
+        level: "ok",
+        text: "No ADR or GDP requirement in selected demo orders.",
+      },
+    ],
+  },
+  "JOB-003": {
+    tripId: "TRIP-DEMO-003",
+    tripType: "Export trailer shuttle",
+    planningStatus: "Break timing review",
+    orders: [
+      {
+        orderRef: "ORD-DEMO-3001",
+        customer: "Central Demo Parts",
+        pickup: "Demo Terminal South",
+        delivery: "Demo Terminal North",
+        pickupWindow: "13:00-13:45",
+        deliveryWindow: "14:30-15:30",
+        goods: "Packed spare parts",
+        kg: 5400,
+        ldm: 6.8,
+        pallets: 14,
+        temperature: "Ambient",
+        adr: true,
+        gdp: false,
+        status: "Review",
+      },
+    ],
+    nodes: [
+      {
+        type: "terminal pickup",
+        location: "Demo Terminal South",
+        window: "13:00-13:30",
+        handlingMinutes: 25,
+        note: "Collect sealed export trailer from demo lane.",
+      },
+      {
+        type: "terminal drop",
+        location: "Demo Terminal North",
+        window: "14:30-15:30",
+        handlingMinutes: 35,
+        note: "Drop trailer to outbound staging and confirm seal number.",
+      },
+    ],
+    requirements: {
+      adr: true,
+      gdp: false,
+      thermo: false,
+      trailerType: "Box trailer",
+      equipment: ["ADR document pouch", "Wheel chocks"],
+    },
+    instructionNotes: [
+      "Verify ADR document pouch before leaving the terminal.",
+      "Plan statutory break before continuing to the next demo job.",
+    ],
+    validationNotes: [
+      {
+        level: "warning",
+        text: "ADR requirement exists and must be checked before dispatch.",
+      },
+      {
+        level: "warning",
+        text: "Current job status indicates a break requirement.",
+      },
+    ],
+  },
+  "JOB-006": {
+    tripId: "TRIP-DEMO-006",
+    tripType: "Temperature controlled GDP export",
+    planningStatus: "Qualification check required",
+    orders: [
+      {
+        orderRef: "ORD-DEMO-6001",
+        customer: "Baltic Demo Pharma",
+        pickup: "Demo DC East",
+        delivery: "Demo Terminal South",
+        pickupWindow: "06:30-07:30",
+        deliveryWindow: "08:30-09:30",
+        goods: "Demo pharma cartons",
+        kg: 2600,
+        ldm: 5.1,
+        pallets: 12,
+        temperature: "+15 C / +25 C",
+        adr: false,
+        gdp: true,
+        status: "Planned",
+      },
+    ],
+    nodes: [
+      {
+        type: "pickup",
+        location: "Demo DC East",
+        window: "06:30-07:30",
+        handlingMinutes: 45,
+        note: "Confirm GDP package count against demo manifest.",
+      },
+      {
+        type: "terminal delivery",
+        location: "Demo Terminal South",
+        window: "08:30-09:30",
+        handlingMinutes: 30,
+        note: "Hand documents to the demo control desk.",
+      },
+    ],
+    requirements: {
+      adr: false,
+      gdp: true,
+      thermo: true,
+      trailerType: "Thermo trailer",
+      equipment: ["Temperature printout", "GDP document set"],
+    },
+    instructionNotes: [
+      "Keep temperature record available for the whole trip.",
+      "Do not depart until GDP document set is checked.",
+    ],
+    validationNotes: [
+      {
+        level: "warning",
+        text: "GDP requirement exists, but assignment must be checked before dispatch.",
+      },
+      {
+        level: "ok",
+        text: "Thermo trailer requirement is present in the job data.",
+      },
+    ],
+  },
+  "JOB-010": {
+    tripId: "TRIP-DEMO-010",
+    tripType: "Flexible empty trailer reposition",
+    planningStatus: "Needs assignment",
+    orders: [
+      {
+        orderRef: "ORD-DEMO-10001",
+        customer: "Arctic Demo Retail",
+        pickup: "Demo DC West",
+        delivery: "Demo Terminal North",
+        pickupWindow: "14:00-14:45",
+        deliveryWindow: "15:00-15:45",
+        goods: "Empty demo trailer reposition",
+        kg: 0,
+        ldm: 0,
+        pallets: 0,
+        temperature: "Ambient",
+        adr: false,
+        gdp: false,
+        status: "Waiting assignment",
+      },
+    ],
+    nodes: [
+      {
+        type: "empty pickup",
+        location: "Demo DC West",
+        window: "14:00-14:45",
+        handlingMinutes: 20,
+        note: "Collect empty trailer after dock release.",
+      },
+      {
+        type: "terminal return",
+        location: "Demo Terminal North",
+        window: "15:00-15:45",
+        handlingMinutes: 20,
+        note: "Park trailer in the demo return lane.",
+      },
+    ],
+    requirements: {
+      adr: false,
+      gdp: false,
+      thermo: false,
+      trailerType: "Box trailer",
+      equipment: ["Trailer lock"],
+    },
+    instructionNotes: [
+      "Confirm trailer is empty before departure.",
+      "Assignment can use any standard demo truck.",
+    ],
+    validationNotes: [
+      {
+        level: "warning",
+        text: "Job is still unassigned and needs a truck before dispatch.",
+      },
+    ],
+  },
+};
+
 const availableTrucks = ["TR-101", "TR-102", "TR-103", "TR-104"];
 
 function calculateDistanceKm(from, to) {
@@ -918,6 +1180,18 @@ export default function App() {
       };
     }
 
+    const details = demoJobDetailsById[job.id];
+
+    if (details) {
+      return {
+        tripId: details.tripId,
+        tripType: details.tripType,
+        planningStatus: details.planningStatus,
+        orderCount: details.orders?.length || 0,
+        stopsCount: details.nodes?.length || 0,
+      };
+    }
+
     return {
       tripId: `TRIP-${job.id?.replace(/\D/g, "").slice(-3) || "001"}`,
       tripType:
@@ -930,6 +1204,21 @@ export default function App() {
 
   const getDemoOrdersForJob = (job) => {
     if (!job) return [];
+
+    const details = demoJobDetailsById[job.id];
+
+    if (details?.orders?.length) {
+      return details.orders.map((order) => ({
+        ...order,
+        id: order.orderRef,
+        kg: String(order.kg),
+        ldm: String(order.ldm),
+        pallets: String(order.pallets),
+        colli: order.colli || "-",
+        orderStatus: order.status,
+        planningStatus: order.status,
+      }));
+    }
 
     const baseCustomer = job.customer || "Demo Customer";
     const origin = job.originCity || "Demo Origin";
@@ -975,6 +1264,16 @@ export default function App() {
 
   const getDemoNodesForJob = (job) => {
     if (!job) return [];
+
+    const details = demoJobDetailsById[job.id];
+
+    if (details?.nodes?.length) {
+      return details.nodes.map((node, index) => ({
+        ...node,
+        id: `NODE-${String(index + 1).padStart(2, "0")}`,
+        time: node.window,
+      }));
+    }
 
     const origin = job.originCity || "Demo Origin";
     const destination = job.destinationCity || "Demo Destination";
@@ -1027,11 +1326,22 @@ export default function App() {
       };
     }
 
-    const requiresAdr = job.id?.endsWith("003") || false;
-    const requiresGdp = job.id?.endsWith("006") || false;
+    const details = demoJobDetailsById[job.id];
+    const requirements = details?.requirements;
+    const requiresAdr = requirements?.adr ?? (job.id?.endsWith("003") || false);
+    const requiresGdp = requirements?.gdp ?? (job.id?.endsWith("006") || false);
+    const requiresThermo =
+      requirements?.thermo ?? job.trailerType?.toLowerCase().includes("thermo") ?? false;
     const adrCapable = job.truck !== "TR-102";
     const gdpCapable = job.truck === "TR-101" || job.truck === "TR-103";
-    const trailerCheck = job.trailerType ? "Trailer type selected" : "Trailer type missing";
+    const expectedTrailerType = requirements?.trailerType;
+    const trailerCheck = expectedTrailerType
+      ? job.trailerType === expectedTrailerType
+        ? `${expectedTrailerType} matches requirement`
+        : `Expected ${expectedTrailerType}`
+      : job.trailerType
+        ? "Trailer type selected"
+        : "Trailer type missing";
 
     let capabilityStatus = "OK";
 
@@ -1050,9 +1360,45 @@ export default function App() {
       gdpCapable,
       requiresAdr,
       requiresGdp,
+      requiresThermo,
+      requiredTrailerType: expectedTrailerType || "No specific trailer requirement",
+      requiredEquipment: requirements?.equipment || [],
       trailerCheck,
       capabilityStatus,
     };
+  };
+
+  const getDemoInstructionNotesForJob = (job) => {
+    if (!job) {
+      return [];
+    }
+
+    const details = demoJobDetailsById[job.id];
+
+    return details?.instructionNotes || [];
+  };
+
+  const getDemoValidationNotesForJob = (job) => {
+    if (!job) {
+      return [];
+    }
+
+    const details = demoJobDetailsById[job.id];
+
+    return details?.validationNotes || [];
+  };
+
+  const getDemoValidationLevelClass = (level) => {
+    switch (level) {
+      case "ok":
+        return "status-pill status-ok";
+      case "warning":
+        return "status-pill status-break";
+      case "risk":
+        return "status-pill status-risk";
+      default:
+        return "status-pill status-open";
+    }
   };
 
   const fleetTrucks = Array.from(
@@ -2344,7 +2690,8 @@ export default function App() {
                         <div>
                           <strong>{node.type}</strong>
                           <span>
-                            {node.location} · {node.time}
+                            {node.location} · {node.time} ·{" "}
+                            {node.handlingMinutes || 0} min
                           </span>
                           <p>{node.note}</p>
                         </div>
@@ -2398,6 +2745,47 @@ export default function App() {
                       <span>Trailer check</span>
                       <strong>
                         {getDemoAssignmentCheckForJob(selectedJob).trailerCheck}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>ADR required</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresAdr
+                          ? "Yes"
+                          : "No"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>GDP required</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresGdp
+                          ? "Yes"
+                          : "No"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Thermo required</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiresThermo
+                          ? "Yes"
+                          : "No"}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Required trailer</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiredTrailerType}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>Equipment</span>
+                      <strong>
+                        {getDemoAssignmentCheckForJob(selectedJob).requiredEquipment
+                          .length
+                          ? getDemoAssignmentCheckForJob(
+                              selectedJob,
+                            ).requiredEquipment.join(", ")
+                          : "No special equipment"}
                       </strong>
                     </div>
                     <div>
@@ -2464,6 +2852,11 @@ export default function App() {
                       condition, temperature setting if required, documents and load
                       securing equipment before departure.
                     </p>
+                    {getDemoInstructionNotesForJob(selectedJob).map((note) => (
+                      <p key={note}>
+                        <strong>Instruction:</strong> {note}
+                      </p>
+                    ))}
                     <p>
                       Send ETA update before arrival and confirm completion after the final
                       node. Wait for next demo instruction if the trip continues with
@@ -2485,6 +2878,16 @@ export default function App() {
                   </div>
 
                   <div className="job-validation-list">
+                    {getDemoValidationNotesForJob(selectedJob).map((note) => (
+                      <div key={`${note.level}-${note.text}`}>
+                        <strong>
+                          <span className={getDemoValidationLevelClass(note.level)}>
+                            {note.level}
+                          </span>
+                        </strong>
+                        <span>{note.text}</span>
+                      </div>
+                    ))}
                     <div>
                       <strong>Driving time</strong>
                       <span>
