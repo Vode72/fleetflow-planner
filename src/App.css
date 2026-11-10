@@ -1763,6 +1763,12 @@ dd {
 }
 
 @media (max-width: 1100px) {
+  .app {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
   .cockpit-board-grid,
   .job-workspace-grid,
   .route-risk-grid {
