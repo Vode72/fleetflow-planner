@@ -4193,3 +4193,35 @@ button.board-fleet-preview-card:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* FF-002C: let the actual header, tabs and planning notes size the workspace.
+   Keep the natural document scroll and map minimum height at <= 1100px. */
+@media (min-width: 1101px) {
+  .app {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app > .app-header,
+  .app > .workspace-tabs,
+  .app > .action-feedback {
+    flex: 0 0 auto;
+  }
+
+  .app > .workspace-view {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .board-view .board-cockpit,
+  .workspace-view.fleet-view.fleet-timeline,
+  .workspace-view.route-risk-view.route-risk-panel {
+    height: 100%;
+  }
+
+  .job-workspace > *,
+  .fleet-left > * {
+    flex-shrink: 0;
+  }
+}
