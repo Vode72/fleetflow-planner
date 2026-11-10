@@ -4225,3 +4225,13 @@ button.board-fleet-preview-card:hover {
     flex-shrink: 0;
   }
 }
+
+/* FF-002D: 300 + 260 + 620px columns + 20px gaps + 20px app padding.
+   Stack Board until its minimum widths fit; keep FF-002C workspace scrolling. */
+@media (min-width: 1101px) and (max-width: 1219px) {
+  .board-view .board-cockpit.board-three-column {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+}
