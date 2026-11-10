@@ -3606,6 +3606,11 @@ button.board-fleet-preview-card:hover {
     grid-template-columns: 1fr;
   }
 
+  /* Auto-height rows cannot provide a height for the flex-sized Leaflet map. */
+  .route-map-container .map {
+    min-height: 360px;
+  }
+
 .route-right {
     max-height: none;
   }
