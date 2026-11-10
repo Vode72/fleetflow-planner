@@ -2,6 +2,12 @@ import { useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "./App.css";
+import {
+  assignTruckToJob,
+  getJobStartTime,
+  getJobEndTime,
+  getTruckLocationGaps,
+} from "./jobPlanning";
 
 const cities = {
   Helsinki: { lat: 60.1699, lng: 24.9384 },
@@ -487,32 +493,6 @@ function parseTimeToMinutes(timeString) {
   return hours * 60 + minutes;
 }
 
-function getRangeStart(timeRange) {
-  return timeRange ? timeRange.split("-")[0]?.trim() : "";
-}
-
-function getRangeEnd(timeRange) {
-  return timeRange ? timeRange.split("-")[1]?.trim() : "";
-}
-
-function getJobStartTime(job) {
-  return (
-    job.loadingTimeExact ||
-    job.flexibleStart ||
-    getRangeStart(job.loadingTimeRange) ||
-    job.loadingTime
-  );
-}
-
-function getJobEndTime(job) {
-  return (
-    job.deliveryTimeExact ||
-    job.flexibleEnd ||
-    getRangeEnd(job.deliveryTimeRange) ||
-    job.deliveryTime
-  );
-}
-
 function getJobTimeLabel(job) {
   const loading = job.loadingTimeExact || job.loadingTimeRange || job.loadingTime;
   const delivery = job.deliveryTimeExact || job.deliveryTimeRange || job.deliveryTime;
@@ -532,31 +512,6 @@ function getNextStepForJob(job) {
   if (job.destinationCity === "Demo Terminal Central") return "Demo Terminal";
   if (job.type === "Empty trailer") return "Jalalle";
   return "Seuraava lastaus";
-}
-
-function chainTruckJobOrigins(jobs) {
-  const chainedJobs = jobs.map((job) => ({ ...job }));
-  const assignedTrucks = Array.from(
-    new Set(chainedJobs.map((job) => job.truck).filter((truck) => truck !== "Unassigned")),
-  );
-
-  assignedTrucks.forEach((truck) => {
-    const truckJobs = chainedJobs
-      .filter((job) => job.truck === truck)
-      .sort((a, b) => getJobStartTime(a).localeCompare(getJobStartTime(b)));
-
-    truckJobs.forEach((job, index) => {
-      if (index === 0) return;
-      const previousJob = truckJobs[index - 1];
-      const chainedJob = chainedJobs.find((candidate) => candidate.id === job.id);
-
-      if (chainedJob) {
-        chainedJob.originCity = previousJob.destinationCity;
-      }
-    });
-  });
-
-  return chainedJobs;
 }
 
 function getTruckScheduleFeasibility(jobs, newJob, truckId) {
@@ -779,6 +734,11 @@ export default function App() {
     };
   }, [dailyJobs]);
 
+  const locationGaps = useMemo(() => getTruckLocationGaps(dailyJobs), [dailyJobs]);
+  const selectedJobLocationGaps = locationGaps.filter(
+    (gap) => gap.jobId === selectedJob.id || gap.previousJobId === selectedJob.id,
+  );
+
   const handleAssignTruckToSelectedJob = () => {
     if (!selectedJob) return;
     if (selectedJob.status !== "Open") return;
@@ -791,18 +751,7 @@ export default function App() {
     );
 
     setDailyJobs((currentJobs) =>
-      chainTruckJobOrigins(
-        currentJobs.map((job) =>
-          job.id === selectedJob.id
-            ? {
-                ...job,
-                truck: selectedAssignTruck,
-                status: "OK",
-                driverHoursToday: 0,
-              }
-            : job,
-        ),
-      ),
+      assignTruckToJob(currentJobs, selectedJob.id, selectedAssignTruck),
     );
     setTractor(selectedAssignTruck);
     setPlanCheckResults(null);
@@ -1791,6 +1740,18 @@ export default function App() {
           </button>
         ))}
       </nav>
+
+      {locationGaps.length > 0 && (
+        <section className="action-feedback warning" aria-label="Temporary planning notes">
+          <strong>Temporary planning notes — location continuity</strong>
+          <ul>
+            {locationGaps.map((gap) => (
+              <li key={`${gap.truck}-${gap.previousJobId}-${gap.jobId}`}>{gap.message}</li>
+            ))}
+          </ul>
+          <p>Review positioning before dispatch. No automatic transfer drive has been created.</p>
+        </section>
+      )}
 
       {workspaceTab === "board" && (
         <section className="workspace-view board-view">
@@ -3035,7 +2996,9 @@ export default function App() {
                       <span className="status-pill status-open">info</span>
                       <strong>Location continuity</strong>
                       <span>
-                        Placeholder for later route continuity and sequence validation.
+                        {selectedJobLocationGaps.length > 0
+                          ? selectedJobLocationGaps.map((gap) => gap.message).join(" ")
+                          : "No location gap detected in the current truck sequence."}
                       </span>
                     </div>
                   </div>
