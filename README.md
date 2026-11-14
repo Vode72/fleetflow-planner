@@ -30,7 +30,7 @@ Fleet Planning Dashboard
 
 | Fleet | Route & Risk |
 |--------|--------------|
-| ![](images/fleet.png) | ![](images/route-risk.png) |
+| ![](images/fleet.png) | *Screenshot coming soon* |
 
 ---
 
