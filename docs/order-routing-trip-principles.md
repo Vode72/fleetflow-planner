@@ -145,6 +145,40 @@ Order `DEMO-ORDER-B` reititetään Vuosaaresta Vantaan kautta Ouluun.
   toimituksen jälkeen, Trip voi jatkua palautukseen asti.
 - Palautuspaikkaa tai pakollista RoundTrip-rakennetta ei oleteta.
 
+## Täydentävän projektikoosteen huomiointi
+
+Käyttäjä toimitti 14.11.2026 myös koosteen ”Keskustelun päätökset,
+suunnitelmat ja kehitystilanne”. Sen aiemmat suunnitteluperiaatteet
+säilyvät tämän Order Routing -tarkennuksen rinnalla:
+
+- FleetFlow laskee, tarkistaa ja ehdottaa; liikenteenohjaaja päättää.
+- Orderin alkuperäisiä noutotietoja ei korvata vetoauton sijainnilla.
+- Tarvittavat siirtymät suunnitellaan erikseen. SOLO, EMPTY_TRAILER ja
+  LOADED_TRAILER kuvaavat ajotyyppiä, eivät Orderin tunnistetta.
+- Trailerin tyhjeneminen ei itsessään irrota traileria tai päätä ketjua.
+- Kaluston soveltuvuus, saatavuus, kuljettajan aika sekä koko päivän
+  toteutettavuus ovat suunnittelun lähtökohtia. Toteutettavuus menee
+  tarpeettomien tyhjien kilometrien vähentämisen edelle.
+- Suunniteltu, ennustettu, vahvistettu, toteutunut ja puuttuva tieto erotetaan.
+  Toteutuneita tapahtumia ei poisteta uudelleensuunnittelussa.
+- KPI- ja korvauslaskennassa vältetään kilometrien kaksoislaskenta:
+  RETURN_TO_BASE kuvaa ajon tarkoitusta, ei neljättä ajotyyppiä.
+
+Koosteen käyttämä **Leg / TransportMovement** tarkoittaa fyysistä ajovaihetta.
+Tämän dokumentin **Order Leg** tarkoittaa Orderin reititysosuutta. Käsitteitä
+ei samasteta eikä kahta päällekkäistä ajotietojen lähdettä perusteta;
+niiden tarkka suhde ja nimeäminen ovat avoimia.
+
+Kooste sisältää myös historiallisia tilatietoja. Tarkistetussa mainissa
+Step 9.1A:n muutos on jo yhdistetty [PR #1:ssä](https://github.com/Vode72/fleetflow-planner/pull/1)
+10.11.2026: lähtötiedot säilytetään, sijaintikatkoksia raportoidaan ja
+Vitest-testit ovat mukana. Tämä ei vielä toteuta automaattisia siirtymäajoja.
+Responsiivisuuskorjauksia on yhdistetty PR:issä #2–#5. Koosteen aiemmat
+”ei testejä”, ”9.1A ei vahvistettu” ja GitHub-yhteysongelmaa koskevat
+tilatiedot eivät sellaisinaan kuvaa tarkistettua mainia tai tämän istunnon
+toimivaa GitHub-yhteyttä. Paikallista kansiosiirtoa tai nykyistä
+haavoittuvuustilannetta ei vahvistettu tässä dokumentaatiotarkistuksessa.
+
 ## Avoimet variaatiot ja rajaukset — eivät hyväksyttyjä toteutuspäätöksiä
 
 | Aihe | Vielä ratkaistava |
