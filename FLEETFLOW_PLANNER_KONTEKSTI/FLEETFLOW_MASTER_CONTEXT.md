@@ -102,6 +102,27 @@ Real TMS/SAP-style workflows can be used only as general inspiration for structu
 
 ---
 
+## Order Routing / Trip clarification — 2026-11-14
+
+The approved Order-centred planning chain is:
+
+```text
+Order → Order Routing → Order Leg → Trip
+```
+
+See [Order Routing ja Trip — sovitut periaatteet](../docs/order-routing-trip-principles.md)
+for the approved identity, Cross Dock, Remain LU, Gateway Instructions,
+IOP/IOD/POD and Trip lifecycle decisions, the Jyväskylä–Vantaa–Lübeck and
+Vuosaari–Vantaa–Oulu examples, and separately listed open variations.
+RoundTrip is optional; its detailed boundaries remain open.
+
+This clarifies the Order–Trip relationship in the earlier model below.
+The existing Node/Stop, Job, Assignment, Plan Check and workspace responsibilities
+remain applicable. This is a design decision record, not a claim that the new
+model or PDF/change-notification workflow is implemented.
+
+---
+
 ## Core Model
 
 FleetFlow Planner’s core planning model is:
