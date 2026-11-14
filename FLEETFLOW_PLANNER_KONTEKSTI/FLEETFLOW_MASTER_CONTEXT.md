@@ -13,7 +13,7 @@ The core idea is to show:
 - logistics domain knowledge
 - daily traffic planning logic
 - React frontend skills
-- TMS/SAP/EVO-style business UI thinking
+- TMS/SAP-style business UI thinking
 - route/map visualization
 - ETA and driving time logic
 - trip/order/node/job modelling
@@ -98,7 +98,7 @@ Do not use:
 - production data
 - employer data
 
-Real TMS/EVO/SAP-style workflows can be used only as general inspiration for structure, layout and process logic.
+Real TMS/SAP-style workflows can be used only as general inspiration for structure, layout and process logic.
 
 ---
 
@@ -439,7 +439,7 @@ FleetFlow Planner has three themes.
 
 ### classic
 
-TMS/EVO-inspired default style.
+TMS-inspired default style.
 
 ### light / SAP Light
 

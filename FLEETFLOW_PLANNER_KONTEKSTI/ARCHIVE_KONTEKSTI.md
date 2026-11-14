@@ -163,13 +163,13 @@ Aiempi nimi:
 
 **Traffic Coordinator Planner**
 
-Projektin nimi muutettiin, koska ohjelma ei ole enää vain yksittäisen ajon suunnittelutyökalu. Se kehittyy kohti TMS/SAP/EVO-tyylistä päivän liikennesuunnittelun ja kapasiteetin hallintaa.
+Projektin nimi muutettiin, koska ohjelma ei ole enää vain yksittäisen ajon suunnittelutyökalu. Se kehittyy kohti TMS/SAP-tyylistä päivän liikennesuunnittelun ja kapasiteetin hallintaa.
 
 ---
 
 ## Projektin tarkoitus
 
-FleetFlow Planner on React + Vite -pohjainen TMS/SAP/EVO-tyylinen desktop planner logistiikan ja liikennesuunnittelun tarpeisiin.
+FleetFlow Planner on React + Vite -pohjainen TMS/SAP-tyylinen desktop planner logistiikan ja liikennesuunnittelun tarpeisiin.
 
 Tavoitteena on näyttää:
 
@@ -232,7 +232,7 @@ Työjärjestelmien rakenteita ja logiikkaa voidaan käyttää vain idean ja layo
   - Break required
   - Risk
 - dynaaminen event log
-- klassinen TMS/SAP/EVO-tyylinen desktop layout
+- klassinen TMS/SAP-tyylinen desktop layout
 - theme-valitsin:
   - classic
   - light
@@ -266,7 +266,7 @@ FleetFlow Plannerissa pidetään kolme theme-vaihtoehtoa:
 
 ### classic
 
-Nykyinen TMS/EVO-henkinen oletusteema.
+Nykyinen TMS-henkinen oletusteema.
 
 ### light
 
@@ -353,7 +353,7 @@ Toteutustapa:
 - ei lisätty uutta statea
 - KPI-arvot johdetaan `dailyJobs`-datasta
 - valittu keikka ei vielä ohjaa karttaa, ETA:a tai ajoaikalogiikkaa
-- nykyinen TMS/SAP/EVO-tyylinen desktop-layout säilytettiin
+- nykyinen TMS/SAP-tyylinen desktop-layout säilytettiin
 - paneeli täyttää yläosan oikean tyhjän tilan
 
 Status: tehty Codexilla.
@@ -911,7 +911,7 @@ Tavoite:
 - SAP Light pysyy beige/harmaa business UI -tyylisenä
 - classic ja dark eivät rikkoudu
 - Step 3:n toiminnallisuudet pysyvät ennallaan
-- layout pysyy tiiviinä TMS/SAP/EVO-tyylisenä desktop plannerina
+- layout pysyy tiiviinä TMS/SAP-tyylisenä desktop plannerina
 
 Tässä vaiheessa ei lisätty uusia ominaisuuksia.
 
@@ -1063,7 +1063,7 @@ Tavoite:
 - Daily Capacity ei mene Daily Traffic Plan -alueen päälle
 - Daily Traffic Plan pysyy luettavana
 - Selected Job pysyy näkyvänä ilman sisäistä scrollia
-- desktop TMS/SAP/EVO-tyylinen tiivis layout säilyy
+- desktop TMS/SAP-tyylinen tiivis layout säilyy
 
 Tässä vaiheessa ei muutettu:
 
@@ -1097,7 +1097,7 @@ Reset-toiminnon tarkoitus on parantaa portfolio-demon käytettävyyttä, koska S
 
 - Open job → assign truck → update dailyJobs
 
-Reset-painike lisättiin käyttöliittymään tiiviinä TMS/SAP/EVO-tyylisenä toimintona.
+Reset-painike lisättiin käyttöliittymään tiiviinä TMS/SAP-tyylisenä toimintona.
 
 Resetin jälkeen nykyinen selectedJob → planner state -logiikka päivittää automaattisesti:
 
@@ -1377,7 +1377,7 @@ Tulos:
   - Truck
   - Status
 - Status-pill, esimerkiksi OK, näkyy ilman sisäistä scrollia
-- kortti pysyy tiiviinä ja TMS/SAP/EVO-tyylisenä
+- kortti pysyy tiiviinä ja TMS/SAP-tyylisenä
 
 
 Build:
@@ -1593,7 +1593,7 @@ npm run build
 
 ## Päivityksen tarkoitus
 
-FleetFlow Plannerin suunta tarkentuu uusien työnkulkujen, kuljetusyhtiöille annettujen ohjeistusesimerkkien ja TMS-/EVO-tyylisten kuvien perusteella.
+FleetFlow Plannerin suunta tarkentuu uusien työnkulkujen ja yleisten TMS-järjestelmien esimerkkien perusteella.
 
 FleetFlow Planner ei ole pelkkä job-lista, yksittäisen ajon planneri tai karttademo. Se on TMS-henkinen päivittäisen liikennesuunnittelun cockpit, jonka tarkoitus on auttaa liikennekoordinaattoria suunnittelemaan, jakamaan ja tarkistamaan päivän tripit, jobit, trailerisiirrot, lastaukset, purut, terminaalikäynnit, satamatapahtumat ja huolto-/korjaamonodet käytettävissä olevilla vetäjillä ja autoilla.
 
@@ -1628,14 +1628,14 @@ Ei saa kopioida suoraan:
 - työnantajan järjestelmäkuvia GitHubissa, README:ssä tai demossa
 - tuotantodataa tai muuta työnantajan dataa
 
-TMS-/EVO-tyylisistä kuvista saa käyttää vain yleisiä ideoita ja rakenteita:
+Yleisistä TMS-esimerkeistä saa käyttää vain yleisiä ideoita ja rakenteita:
 
 - listanäkymien rakenne
 - trip/order/capacity/details-ikkunat
 - node-/stop-logiikka
 - dispatcher board -tyyppinen työskentelymalli
 - context menu -toimintojen ideat
-- TMS/SAP/EVO-tyylinen tiivis business UI
+- TMS/SAP-tyylinen tiivis business UI
 - tripin, orderin, trailerin, noden ja jobin välinen yleinen logiikka
 - suunnitteluprosessin työnkulku
 
