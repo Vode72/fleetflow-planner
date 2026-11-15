@@ -1722,7 +1722,7 @@ export default function App() {
             >
               <option value="classic">Classic</option>
               <option value="dark">Dark</option>
-              <option value="light">SAP Light</option>
+              <option value="light">Business Light</option>
             </select>
           </div>
         </div>

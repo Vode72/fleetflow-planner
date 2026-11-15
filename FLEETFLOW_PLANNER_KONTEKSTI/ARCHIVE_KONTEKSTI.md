@@ -163,13 +163,13 @@ Aiempi nimi:
 
 **Traffic Coordinator Planner**
 
-Projektin nimi muutettiin, koska ohjelma ei ole enää vain yksittäisen ajon suunnittelutyökalu. Se kehittyy kohti TMS/SAP-tyylistä päivän liikennesuunnittelun ja kapasiteetin hallintaa.
+Projektin nimi muutettiin, koska ohjelma ei ole enää vain yksittäisen ajon suunnittelutyökalu. Se kehittyy kohti TMS-tyylistä päivän liikennesuunnittelun ja kapasiteetin hallintaa.
 
 ---
 
 ## Projektin tarkoitus
 
-FleetFlow Planner on React + Vite -pohjainen TMS/SAP-tyylinen desktop planner logistiikan ja liikennesuunnittelun tarpeisiin.
+FleetFlow Planner on React + Vite -pohjainen TMS-tyylinen desktop planner logistiikan ja liikennesuunnittelun tarpeisiin.
 
 Tavoitteena on näyttää:
 
@@ -232,7 +232,7 @@ Työjärjestelmien rakenteita ja logiikkaa voidaan käyttää vain idean ja layo
   - Break required
   - Risk
 - dynaaminen event log
-- klassinen TMS/SAP-tyylinen desktop layout
+- klassinen TMS-tyylinen desktop layout
 - theme-valitsin:
   - classic
   - light
@@ -270,11 +270,11 @@ Nykyinen TMS-henkinen oletusteema.
 
 ### light
 
-SAP-henkinen beige/harmaa business UI. Ei puhdas valkoinen.
+Beige/harmaa business UI. Ei puhdas valkoinen.
 
 UI:ssa light voidaan nimetä:
 
-**SAP Light**
+**Business Light**
 
 Koodissa theme-arvo pysyy:
 
@@ -353,7 +353,7 @@ Toteutustapa:
 - ei lisätty uutta statea
 - KPI-arvot johdetaan `dailyJobs`-datasta
 - valittu keikka ei vielä ohjaa karttaa, ETA:a tai ajoaikalogiikkaa
-- nykyinen TMS/SAP-tyylinen desktop-layout säilytettiin
+- nykyinen TMS-tyylinen desktop-layout säilytettiin
 - paneeli täyttää yläosan oikean tyhjän tilan
 
 Status: tehty Codexilla.
@@ -433,7 +433,7 @@ Sailytykset ja rajaukset:
 - Reset demo plan -logiikka sailyi.
 - Theme-rakenne sailyi:
   - classic
-  - light / SAP Light
+  - light / Business Light
   - dark
 
 Muokatut tiedostot:
@@ -542,9 +542,9 @@ npm run build passed
 
 ---
 
-## Step 5.3.3 — SAP-style Details Tabs
+## Step 5.3.3 — Details Tabs
 
-Ajotiedot / tulos -paneeli muutettiin SAP-/TMS-tyyliseksi välilehtipaneeliksi.
+Ajotiedot / tulos -paneeli muutettiin TMS-tyyliseksi välilehtipaneeliksi.
 
 Lisättiin uusi state:
 
@@ -584,7 +584,7 @@ Tavoite:
 
 - vähentää Ajotiedot-paneelin pituutta
 - välttää turhaa scrollia
-- tehdä UI:sta enemmän SAP-/TMS-tyylinen
+- tehdä UI:sta enemmän TMS-tyylinen
 - säilyttää kaikki nykyiset laskennat ja toiminnallisuudet ennallaan
 
 Tässä vaiheessa ei muutettu:
@@ -889,7 +889,7 @@ npm run build passed
 Tehtiin visuaalinen QA- ja consistency-pass kaikille kolmelle teemalle:
 
 - classic
-- SAP Light
+- Business Light
 - dark
 
 Tarkistettiin:
@@ -908,10 +908,10 @@ Tarkistettiin:
 Tavoite:
 
 - kaikki teemat ovat käyttökelpoisia
-- SAP Light pysyy beige/harmaa business UI -tyylisenä
+- Business Light pysyy beige/harmaa business UI -tyylisenä
 - classic ja dark eivät rikkoudu
 - Step 3:n toiminnallisuudet pysyvät ennallaan
-- layout pysyy tiiviinä TMS/SAP-tyylisenä desktop plannerina
+- layout pysyy tiiviinä TMS-tyylisenä desktop plannerina
 
 Tässä vaiheessa ei lisätty uusia ominaisuuksia.
 
@@ -933,14 +933,14 @@ npm run build passed
 
 ---
 
-## Step 4.1 — SAP Light Theme Polish
+## Step 4.1 — Business Light Theme Polish
 
-Light-teema viimeisteltiin SAP-henkiseksi beige/harmaa business UI -teemaksi.
+Light-teema viimeisteltiin beige/harmaaksi business UI -teemaksi.
 
 Theme-päätös:
 
 - koodissa theme-arvo pysyy edelleen `light`
-- käyttäjälle näkyvä label voi olla `SAP Light`
+- käyttäjälle näkyvä label voi olla `Business Light`
 
 Light-teeman tavoitesävyt:
 
@@ -1063,7 +1063,7 @@ Tavoite:
 - Daily Capacity ei mene Daily Traffic Plan -alueen päälle
 - Daily Traffic Plan pysyy luettavana
 - Selected Job pysyy näkyvänä ilman sisäistä scrollia
-- desktop TMS/SAP-tyylinen tiivis layout säilyy
+- desktop TMS-tyylinen tiivis layout säilyy
 
 Tässä vaiheessa ei muutettu:
 
@@ -1097,7 +1097,7 @@ Reset-toiminnon tarkoitus on parantaa portfolio-demon käytettävyyttä, koska S
 
 - Open job → assign truck → update dailyJobs
 
-Reset-painike lisättiin käyttöliittymään tiiviinä TMS/SAP-tyylisenä toimintona.
+Reset-painike lisättiin käyttöliittymään tiiviinä TMS-tyylisenä toimintona.
 
 Resetin jälkeen nykyinen selectedJob → planner state -logiikka päivittää automaattisesti:
 
@@ -1377,7 +1377,7 @@ Tulos:
   - Truck
   - Status
 - Status-pill, esimerkiksi OK, näkyy ilman sisäistä scrollia
-- kortti pysyy tiiviinä ja TMS/SAP-tyylisenä
+- kortti pysyy tiiviinä ja TMS-tyylisenä
 
 
 Build:
@@ -1635,7 +1635,7 @@ Yleisistä TMS-esimerkeistä saa käyttää vain yleisiä ideoita ja rakenteita:
 - node-/stop-logiikka
 - dispatcher board -tyyppinen työskentelymalli
 - context menu -toimintojen ideat
-- TMS/SAP-tyylinen tiivis business UI
+- TMS-tyylinen tiivis business UI
 - tripin, orderin, trailerin, noden ja jobin välinen yleinen logiikka
 - suunnitteluprosessin työnkulku
 
@@ -2793,7 +2793,7 @@ Job Workspace -sisäiset tabit viimeisteltiin vastaamaan Board Detail Panelin Se
 
 Tavoite:
 
-- yhtenäinen SAP/TMS-henkinen valitsintyyli
+- yhtenäinen TMS-henkinen valitsintyyli
 - vaalea tausta
 - ohut reunaviiva
 - matala ja tiivis korkeus
@@ -2827,7 +2827,7 @@ GitHub Pages -live-demossa päävälilehtien hover-/active-tyyli korjattiin.
 Korjattu ongelma:
 
 - Board / Job / Fleet / Route & Risk -päävälilehti muuttui hoverissa tai aktiivisena liian tummaksi / mustaksi
-- tyyli ei vastannut FleetFlow Plannerin SAP/TMS-henkistä vaaleaa tabirakennetta
+- tyyli ei vastannut FleetFlow Plannerin TMS-henkistä vaaleaa tabirakennetta
 
 Korjaus:
 
