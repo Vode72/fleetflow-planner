@@ -13,7 +13,7 @@ The core idea is to show:
 - logistics domain knowledge
 - daily traffic planning logic
 - React frontend skills
-- TMS/SAP-style business UI thinking
+- TMS-style business UI thinking
 - route/map visualization
 - ETA and driving time logic
 - trip/order/node/job modelling
@@ -98,7 +98,7 @@ Do not use:
 - production data
 - employer data
 
-Real TMS/SAP-style workflows can be used only as general inspiration for structure, layout and process logic.
+Real TMS-style workflows can be used only as general inspiration for structure, layout and process logic.
 
 ---
 
@@ -415,7 +415,7 @@ Implemented:
 - dynamic Event Log
 - theme selector:
   - classic
-  - light / SAP Light
+  - light / Business Light
   - dark
 - GitHub Pages deploy
 - cockpit main tabs:
@@ -441,9 +441,9 @@ FleetFlow Planner has three themes.
 
 TMS-inspired default style.
 
-### light / SAP Light
+### light / Business Light
 
-SAP-inspired beige/grey business UI.
+Beige/grey business UI.
 
 Code value remains:
 
@@ -570,7 +570,7 @@ Polished:
 
 - reduced vertical whitespace in the Job header
 - aligned selected job dropdown with the header area
-- made the header more toolbar-like and TMS/SAP-style
+- made the header more toolbar-like and TMS-style
 - kept Job Workspace tabs and data-driven content unchanged
 - preserved responsive stacking for narrower screens
 
@@ -592,7 +592,7 @@ Completed.
 
 Final compact header spacing correction for Job Workspace.
 
-Reduced remaining parent/header whitespace so the selected job header is closer to a compact TMS/SAP toolbar.
+Reduced remaining parent/header whitespace so the selected job header is closer to a compact TMS toolbar.
 
 No data logic, helper functions, tab content or other workspace views were changed.
 
