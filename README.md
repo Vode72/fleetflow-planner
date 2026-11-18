@@ -1,5 +1,7 @@
 # 🚚 FleetFlow Planner
 
+> **Archived (November 2026).** Development of this prototype has stopped. Its ideas continue in [FleetFreight TMS](https://github.com/Vode72/fleetfreight-tms), which merges Freight Planner and FleetFlow Planner into one transport management system. This repository stays available as part of the portfolio.
+
 FleetFlow Planner is a React-based Transport Management System (TMS) planning dashboard developed as a portfolio project to demonstrate modern transport planning, fleet coordination and operational decision support.
 
 The application combines practical logistics expertise with modern web technologies, providing a TMS-inspired planning cockpit for managing daily transport operations using realistic fictional demo data.
